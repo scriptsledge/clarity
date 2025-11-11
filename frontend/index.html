@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clarity - AI Code Corrector</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Clarity ✨</h1>
+            <p>Paste your buggy Python code below and let AI fix it.</p>
+        </header>
+
+        <main>
+            <div class="code-editor">
+                <textarea id="codeInput" placeholder="def find_evens(numbers): ..."></textarea>
+                <button id="correctBtn">Correct My Code</button>
+            </div>
+            
+            <div class="code-output-container">
+                <h2>Corrected Code:</h2>
+                <pre class="code-output"><code id="codeOutput"># Your corrected code will appear here...</code></pre>
+            </div>
+        </main>
+
+        <footer>
+            <p>Built by the Clarity Team</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
