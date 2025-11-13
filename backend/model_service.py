@@ -1,6 +1,7 @@
 # --- Team Task ---
 # TODO: Import the 'pipeline' function from the 'transformers' library.
 # from transformers import pipeline
+print("heloo world")
 
 # --- Team Task ---
 # TODO: Initialize the 'text2text-generation' pipeline using the 'Salesforce/codet5-small' model.
