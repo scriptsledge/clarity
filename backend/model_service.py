@@ -1,5 +1,6 @@
 # --- Team Task ---
 # TODO: Import the 'pipeline' function from the 'transformers' library.
+from transformers import pipeline
 # from transformers import pipeline
 
 # --- Team Task ---
