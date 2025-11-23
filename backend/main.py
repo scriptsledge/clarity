@@ -22,14 +22,9 @@ class CodeSnippet(BaseModel):
 
 @app.post("/api/correct")
 def correct_code_endpoint(snippet: CodeSnippet):
-    # --- Team Task ---
-    # TODO: Call the 'correct_code_with_ai' function, passing it the user's code (snippet.code).
-    # TODO: Store the result in a variable called 'corrected_code'.
-    # Example: corrected_code = correct_code_with_ai(snippet.code)
-    
-    # For now, we are returning a placeholder. Replace this with the real result.
-    corrected_code = "# The corrected code from the AI will appear here."
-    
+    # This now calls the 'correct_code_with_ai' function from model_service.py
+    # In Phase 1, this function returns a mock response.
+    corrected_code = correct_code_with_ai(snippet.code)
     return {"corrected_code": corrected_code}
 
 # To run this server:
