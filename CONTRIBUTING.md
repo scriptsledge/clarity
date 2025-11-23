@@ -49,6 +49,57 @@ Now you are ready to start the development workflow!
 
 ---
 
+## 🚀 Optional: Using `uv` for a Faster Setup
+
+For an even faster and more modern development setup, you can use [`uv`](https://github.com/astral-sh/uv), an extremely fast Python package installer and resolver, written in Rust. It's a drop-in replacement for `pip` and `venv` that can significantly speed up dependency installation.
+
+### Why Use `uv`?
+- **Speed:** It can be orders of magnitude faster than `pip`.
+- **All-in-One:** It handles both package installation (`pip`) and virtual environment creation (`venv`).
+- **Advanced Caching:** It uses a global cache, reducing the need to re-download packages across different projects.
+
+### How to Use `uv`
+
+1.  **Install `uv`**
+    *   First, install `uv` on your system if you haven't already.
+    *   **On macOS and Linux:**
+        ```bash
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        ```
+    *   **On Windows:**
+        ```bash
+        powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+        ```
+
+2.  **Create a Virtual Environment with `uv`**
+    *   From the root of the `clarity` project folder, run:
+        ```bash
+        uv venv venv
+        ```
+    *   This command is equivalent to `python3 -m venv venv` but is much faster.
+
+3.  **Activate the Virtual Environment**
+    *   The activation process is **identical** to a standard virtual environment.
+    *   **On macOS and Linux:**
+        ```bash
+        source venv/bin/activate
+        ```
+    *   **On Windows:**
+        ```bash
+        .\venv\Scripts\activate
+        ```
+
+4.  **Install Dependencies with `uv`**
+    *   With your virtual environment active, use `uv` to install the requirements:
+        ```bash
+        uv pip install -r backend/requirements.txt
+        ```
+    *   You'll notice this step is significantly faster than using `pip`.
+
+From here, the rest of the development workflow remains the same.
+
+---
+
 ## 📝 The Development Workflow: A Step-by-Step Guide
 
 Here is the complete workflow for making a change. Follow these steps every time you start a new task.
