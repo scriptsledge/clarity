@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
-# TODO (Team Task): Import the 'correct_code_with_ai' function from model_service.py
+# TODO (Team Task): Import the 'correct_code_with_ai' function from model_service.py\
+from model_service import correct_code_with_ai
 # from model_service import correct_code_with_ai
 
 app = FastAPI()
