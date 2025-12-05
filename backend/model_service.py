@@ -1,18 +1,62 @@
-# --- Team Task ---
-# TODO: Import the 'pipeline' function from the 'transformers' library.
-# from transformers import pipeline
+from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 
-# --- Team Task ---
-# TODO: Initialize the 'text2text-generation' pipeline using the 'Salesforce/codet5-small' model.
-# This will download the model the first time it's run (it's a few hundred MB).
-# Assign the pipeline to a variable, for example: code_fixer = pipeline(...)
+# Initialize the model pipeline.
+# We use 'Qwen/Qwen2.5-0.5B-Instruct' which is small, fast, and works natively.
+model_id = "Qwen/Qwen2.5-0.5B-Instruct"
+print(f"Loading AI model ({model_id})...")
 
-code_fixer = None # Placeholder
+code_fixer = None
+try:
+    # 1. Try loading from local cache first (offline mode)
+    print("Attempting to load from local cache...")
+    model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True, local_files_only=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True, local_files_only=True)
+    code_fixer = pipeline("text-generation", model=model, tokenizer=tokenizer)
+    print("Success: Loaded model from local cache.")
+except Exception as local_err:
+    print(f"Local cache not found or incomplete: {local_err}")
+    print("Attempting to download model from Hugging Face (requires internet)...")
+    try:
+        # 2. Fallback to downloading (online mode)
+        code_fixer = pipeline("text-generation", model=model_id, trust_remote_code=True)
+        print("Success: Model downloaded and loaded.")
+    except Exception as remote_err:
+        print(f"CRITICAL: Failed to load model. Error: {remote_err}")
+        print("To run locally, ensure you have internet access for the first run to download the model.")
+        code_fixer = None
 
 def correct_code_with_ai(code: str) -> str:
     """
-    This is a mock function for Phase 1 of the project.
-    It does not call a real AI model.
+    Takes a buggy code snippet and returns a corrected version using the Qwen model.
     """
-    print(f"Received code to correct (mock): {code[:50]}...")
-    return "# This is a corrected code snippet (mock response from Phase 1)."
+    if not code_fixer:
+        return "# Model failed to load. Check server logs."
+
+    # Frame the input as a chat conversation
+    messages = [
+        {"role": "system", "content": "You are a helpful Python coding assistant. Your task is to fix bugs, suggest better variable naming in form of comments in the provided code. Return ONLY the corrected code, without explanation."},
+        {"role": "user", "content": f"{code}"},
+    ]
+    
+    try:
+        # Generate the response
+        # max_new_tokens controls how much new text is generated.
+        outputs = code_fixer(messages, max_new_tokens=512)
+        
+        # The pipeline for chat-like input typically returns a list of dictionaries.
+        # We need to parse the output to get just the assistant's response.
+        # The structure is usually: [{'generated_text': [...conversation including response...]}]
+        # or sometimes just the generated text depending on pipeline version.
+        
+        result = outputs[0]['generated_text']
+        
+        # If the result is the full conversation list (common in newer transformers for chat)
+        if isinstance(result, list):
+            # The last message should be the assistant's response
+            return result[-1]['content']
+        else:
+            # Fallback if it returns a string
+            return result
+    except Exception as e:
+        print(f"An error occurred during AI correction: {e}")
+        return f"# Unable to correct the code. Error: {str(e)}"

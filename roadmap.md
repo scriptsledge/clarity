@@ -37,7 +37,7 @@ To build a web-based tool with a simple interface where a user can:
 | Component | Technology | Recommendation & Justification |
 | :--- | :--- | :--- |
 | **Backend** | **Python with FastAPI** | FastAPI is modern, fast, and has automatic interactive documentation (Swagger UI), which is excellent for API development and testing. |
-| **AI Model** | **Hugging Face Transformers** | We can use a pre-trained model like `Salesforce/codet5-small` which is designed for code-related tasks and is a manageable size for an MVP. |
+| **AI Model** | **Hugging Face Transformers** | We use `Qwen/Qwen2.5-0.5B-Instruct`, a small and fast model that works well for code instruction tasks. |
 | **Frontend** | **HTML, CSS, JavaScript** | For an MVP, vanilla web technologies are perfect. They are simple, have no build steps, and are easy to deploy. |
 
 ---
@@ -64,6 +64,16 @@ To build a web-based tool with a simple interface where a user can:
     *   Create `backend/requirements.txt` with `fastapi` and `uvicorn`.
 
 **Outcome of Phase 1:** A developer can run the backend, send it code, and get a predictable, fake response.
+
+**Running the Backend (Phase 1):**
+```bash
+# Navigate to the backend directory first to avoid import errors
+cd backend
+
+# Start the server
+uvicorn main:app --reload
+```
+*Note: If you see `ModuleNotFoundError`, ensure you are inside the `backend` folder before running `uvicorn`.*
 
 **File: `backend/requirements.txt`**
 ```
@@ -187,13 +197,20 @@ document.getElementById('correctBtn').addEventListener('click', () => {
     *   Add `transformers` and `torch` to `backend/requirements.txt`.
 2.  **Integrate the Model:**
     *   In `backend/model_service.py`, modify the `correct_code_with_ai` function.
-    *   Load the pre-trained model from Hugging Face (`Salesforce/codet5-small`).
+    *   Load the `Qwen/Qwen2.5-0.5B-Instruct` model.
     *   Pass the user's code to the model and get the real, AI-generated output.
     *   Handle potential errors during model inference.
 3.  **Test the Endpoint:**
     *   Thoroughly test the `/api/correct` endpoint directly (using FastAPI's automatic docs) to ensure it's working as expected.
 
 **Outcome of Phase 3:** The backend is now "smart." When you send it buggy code, it sends back a real, AI-generated correction.
+
+**Running the Backend (Phase 3):**
+```bash
+cd backend
+uvicorn main:app --reload
+```
+*Important: On the very first run, the application will download the AI model (approx. 1GB). This may take a few minutes. Wait until you see `Application startup complete` before testing.*
 
 **File: `backend/requirements.txt` (Updated)**
 ```
@@ -207,24 +224,51 @@ torch
 ```python
 from transformers import pipeline
 
-# Initialize the model pipeline. This will download the model on the first run.
-# We recommend a text-to-text generation model fine-tuned on code.
-# Note: This model can be large (400-500MB) and will download on first run.
-code_fixer = pipeline('text2text-generation', model='Salesforce/codet5-small')
+# Initialize the model pipeline using a standard Transformers model.
+# We use 'Qwen/Qwen2.5-0.5B-Instruct' which is small, fast, and works natively with the installed libraries.
+print("Loading AI model (Qwen/Qwen2.5-0.5B-Instruct)...")
+try:
+    code_fixer = pipeline("text-generation", model="Qwen/Qwen2.5-0.5B-Instruct", trust_remote_code=True)
+except Exception as e:
+    print(f"Failed to load model: {e}")
+    code_fixer = None
 
 def correct_code_with_ai(code: str) -> str:
-    # We need to frame the input as an instruction for the model.
-    # This is a simple example; prompt engineering can significantly improve results.
-    prompt = f"Fix the bug in this Python code: {code}"
+    """
+    Takes a buggy code snippet and returns a corrected version using the Qwen AI model.
+    """
+    if not code_fixer:
+        return "# Model failed to load. Check server logs."
+
+    # Frame the input as a chat conversation
+    messages = [
+        {"role": "system", "content": "You are a helpful Python coding assistant. Your task is to fix bugs in the provided code. Return ONLY the corrected code, without explanation."},
+        {"role": "user", "content": f"{code}"},
+    ]
     
     try:
-        # Generate the corrected code
-        result = code_fixer(prompt, max_length=256)
-        corrected_code = result[0]['generated_text']
-        return corrected_code
+        # Generate the response
+        # max_new_tokens controls how much new text is generated.
+        outputs = code_fixer(messages, max_new_tokens=512)
+        
+        # The pipeline for chat-like input typically returns a list of dictionaries.
+        # We need to parse the output to get just the assistant's response.
+        # The structure is usually: [{'generated_text': [...conversation including response...]}]
+        # or sometimes just the generated text depending on pipeline version.
+        
+        result = outputs[0]['generated_text']
+        
+        # If the result is the full conversation list (common in newer transformers for chat)
+        if isinstance(result, list):
+            # The last message should be the assistant's response
+            return result[-1]['content']
+        else:
+            # Fallback if it returns a string
+            return result
+
     except Exception as e:
         print(f"An error occurred during AI correction: {e}")
-        return "# Unable to correct the code. Please try again."
+        return f"# Unable to correct the code. Error: {str(e)}"
 ```
 
 ---
@@ -285,7 +329,7 @@ This is the most critical part because of the AI model's size. You don't "upload
 **Primary Recommendation: Hugging Face Spaces**
 
 *   **Why it's perfect:** Hugging Face Spaces is a free service *designed* for hosting ML applications. It provides you with a containerized environment where your FastAPI app can run.
-*   **How it works:** When your app starts in a Space, it will download the `Salesforce/codet5-small` model from the Hub into the container's storage. The model will stay there, so it doesn't need to be re-downloaded on every request.
+*   **How it works:** When your app starts in a Space, it will download the `Qwen/Qwen2.5-0.5B-Instruct` model from the Hub into the container's storage. The model will stay there, so it doesn't need to be re-downloaded on every request.
 *   **Size Limits:** The free "Community" tier provides enough CPU, RAM, and storage for an MVP with a small model like ours. There are no hard project limits that would affect this MVP.
 
 **Alternative (Not Recommended for this MVP): Heroku, Render, etc.**
