@@ -59,13 +59,13 @@ During deployment, we encountered various URLs. Here is how Vercel organizes the
 ### 2.3 Understanding Vercel URLs
 Vercel generates three types of URLs for every project:
 
-1.  **Production Domain:** `https://clarity-seven-sigma.vercel.app`
-    *   *Why "seven-sigma"?* The name `clarity.vercel.app` was likely already taken by another user. Vercel automatically appends random words (like "seven-sigma") to ensure the URL is unique globally.
+1.  **Production Domain:** `https://logiclensclarity.vercel.app`
+    *   *Note:* We chose the name `logiclensclarity` to ensure a clear, unique URL.
     *   *Customization:* You can rename the project in Vercel Settings to try for a different URL (e.g., `scriptsledge-clarity.vercel.app`).
-2.  **Deployment URL:** `https://clarity-git-main-scriptsledge.vercel.app`
+2.  **Deployment URL:** `https://logiclensclarity-git-main-scriptsledge.vercel.app`
     *   Linked to a specific Git branch (e.g., `main`). Useful for testing changes before they go live.
-3.  **Immutable Deployment URL:** `https://clarity-ao30vck1m-scriptsledge.vercel.app`
-    *   Contains a unique hash (`ao30vck1m`). This points to *that specific build* forever. Even if you update the site, this URL will show the old version.
+3.  **Immutable Deployment URL:** `https://logiclensclarity-3mycgn3cu-scriptsledge.vercel.app`
+    *   Contains a unique hash (`3mycgn3cu`). This points to *that specific build* forever. Even if you update the site, this URL will show the old version.
 
 ---
 
@@ -73,7 +73,7 @@ Vercel generates three types of URLs for every project:
 
 Now that deployment is complete, the application flow is:
 
-1.  **User** visits `https://clarity-seven-sigma.vercel.app` (Frontend on Vercel).
+1.  **User** visits `https://logiclensclarity.vercel.app` (Frontend on Vercel).
 2.  User enters code and clicks "Correct".
 3.  **Frontend** sends a POST request to `https://scriptsledge-clarity-backend.hf.space/api/correct`.
 4.  **Backend (Hugging Face)** receives the code, runs it through the Qwen model, and returns the fix.
