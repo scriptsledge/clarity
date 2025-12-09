@@ -4,7 +4,7 @@ document.getElementById('correctBtn').addEventListener('click', () => {
     
     codeOutput.textContent = 'Correcting...';
 
-    fetch('http://127.0.0.1:8000/api/correct', {
+    fetch('https://scriptsledge-clarity-backend.hf.space/api/correct', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
