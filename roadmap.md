@@ -291,7 +291,13 @@ def correct_code_with_ai(code: str) -> str:
 
 ---
 
-### **Phase 5: Deployment**
+## Phase 5: Deployment (Completed)
+- [x] Create a `Dockerfile` for the backend.
+- [x] Deploy the backend to Hugging Face Spaces (Docker SDK).
+- [x] Deploy the frontend to Vercel.
+- [x] Connect the deployed frontend to the deployed backend.
+- [x] Verify the live application.
+
 
 **Goal:** Put your project on the internet so anyone can use it.
 
