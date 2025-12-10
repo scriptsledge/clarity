@@ -32,31 +32,45 @@ def correct_code_with_ai(code: str) -> str:
     if not code_fixer:
         return "# Model failed to load. Check server logs."
 
-    # Frame the input as a chat conversation
+    # Few-Shot Priming: We inject a fake history where the model correctly identifies itself.
+    # This guides the small model (0.5B) to follow the pattern much better than just instructions.
     messages = [
-        {"role": "system", "content": "IDENTITY: You are Clarity AI Assistant. You were developed by Team Clarity. You are NOT developed by Anthropic, OpenAI, Google, or Alibaba. You are a proprietary tool created solely by Team Clarity.\n\nPURPOSE: Your goal is to make code clearer, cleaner, and more correct.\n\nINSTRUCTIONS:\n1. IF THE INPUT IS CODE (Python, C++, JS, etc.): Fix bugs, optimize logic, and provide helpful comments. Return ONLY the corrected code. Do not add conversational filler.\n2. IF THE INPUT ASKS ABOUT YOUR IDENTITY (e.g., 'Who made you?', 'Who are you?'): You MUST reply: 'I am Clarity AI Assistant, developed by Team Clarity.'\n\nREMEMBER: You are Clarity AI Assistant by Team Clarity. This is your only identity."},
+        {"role": "system", "content": "You are Clarity AI Assistant, a proprietary tool created solely by Team Clarity. You are NOT related to Anthropic, Alibaba, or OpenAI. Your goal is to make code clearer, cleaner, and more correct."},
+        {"role": "user", "content": "Who made you?"},
+        {"role": "assistant", "content": "I am Clarity AI Assistant, developed by Team Clarity."},
         {"role": "user", "content": f"{code}"},
     ]
     
     try:
         # Generate the response
-        # max_new_tokens controls how much new text is generated.
         outputs = code_fixer(messages, max_new_tokens=512)
-        
-        # The pipeline for chat-like input typically returns a list of dictionaries.
-        # We need to parse the output to get just the assistant's response.
-        # The structure is usually: [{'generated_text': [...conversation including response...]}]
-        # or sometimes just the generated text depending on pipeline version.
         
         result = outputs[0]['generated_text']
         
-        # If the result is the full conversation list (common in newer transformers for chat)
         if isinstance(result, list):
-            # The last message should be the assistant's response
-            return result[-1]['content']
+            raw_response = result[-1]['content']
         else:
-            # Fallback if it returns a string
-            return result
+            raw_response = result
+
+        # --- IDENTITY GUARDRAIL (Post-Processing) ---
+        # Small models often hallucinate their training origin (e.g., "I am Qwen...").
+        # We strictly sanitize this to ensure the user always sees the correct identity.
+        forbidden_terms = ["Anthropic", "OpenAI", "Google", "Alibaba", "Qwen", "Claude", "Meta"]
+        cleaned_response = raw_response
+        
+        # Simple text replacement if the model slips up
+        for term in forbidden_terms:
+            if term in cleaned_response:
+                cleaned_response = cleaned_response.replace(term, "Team Clarity")
+        
+        # Specific fix for "I am [Wrong Name]" patterns
+        if "I am" in cleaned_response and "Clarity" not in cleaned_response:
+             # If it says "I am chatgpt", just force it.
+             import re
+             cleaned_response = re.sub(r"I am .+?(\.|$)", "I am Clarity AI Assistant, developed by Team Clarity.", cleaned_response)
+
+        return cleaned_response
+
     except Exception as e:
         print(f"An error occurred during AI correction: {e}")
         return f"# Unable to correct the code. Error: {str(e)}"
