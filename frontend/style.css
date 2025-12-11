@@ -24,6 +24,7 @@ body {
     line-height: 1.6;
     display: flex;
     justify-content: center;
+    align-items: center; /* Vertically center */
     min-height: 100vh;
     padding: 2rem;
 }
@@ -43,17 +44,21 @@ header {
 }
 
 header h1 {
-    font-size: 2.5rem;
+    font-size: 3.5rem; /* Slightly larger for logo effect */
     font-weight: 800;
-    background: linear-gradient(to right, #818cf8, #c084fc);
+    /* Premium, shiny, tech-themed gradient */
+    background: linear-gradient(45deg, #89cff0 0%, #a2a8d3 25%, #d1d5db 50%, #a2a8d3 75%, #89cff0 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 0.5rem;
+    filter: drop-shadow(0 0 5px rgba(137, 207, 240, 0.5)); /* Subtle glow */
 }
 
 header p {
     color: var(--text-muted);
     font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto; /* Center the text block */
 }
 
 /* Main Layout */
@@ -72,36 +77,40 @@ main {
 
 textarea {
     width: 100%;
-    height: 250px;
-    background-color: var(--bg-card);
-    color: var(--text-main);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1rem;
+    height: 200px;
+    background-color: #1a2230; /* Slightly darker than bg-card for contrast */
+    color: #e2e8f0; /* Lighter text for better readability */
+    border: 1px solid #4a5568; /* Solid but subtle border */
+    border-radius: 10px; /* Slightly more rounded */
+    padding: 1.2rem;
     font-family: var(--code-font);
-    font-size: 0.95rem;
-    resize: vertical; /* Allow vertical resizing only */
+    font-size: 1rem; /* Slightly larger font */
+    resize: vertical;
     outline: none;
-    transition: border-color 0.2s;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* More prominent shadow */
 }
 
 textarea:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3); /* Clearer focus ring */
+    background-color: #1a273f; /* Slightly change on focus */
 }
 
 button#correctBtn {
     background-color: var(--primary);
     color: white;
     border: none;
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
     font-weight: 600;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s;
-    align-self: flex-end; /* Aligns button to the right */
+    align-self: center; /* Center the button */
+    width: 100%;
+    max-width: 250px; /* But don't let it get too wide */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
 }
 
 button#correctBtn:hover {
@@ -114,17 +123,18 @@ button#correctBtn:active {
 
 /* Output Section */
 .code-output-container {
-    background-color: #0d1117; /* Darker contrast for output */
+    background-color: #0d1117;
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 1.5rem;
     position: relative;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .code-output-container h2 {
-    font-size: 1rem;
+    font-size: 0.9rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
     color: var(--text-muted);
     margin-bottom: 1rem;
     border-bottom: 1px solid var(--border);
@@ -132,13 +142,14 @@ button#correctBtn:active {
 }
 
 pre.code-output {
-    overflow-x: auto; /* Scroll horizontally if code is too long */
-    white-space: pre-wrap; /* Wrap text if preferred, remove for scroll */
+    overflow-x: auto;
+    white-space: pre-wrap;
+    line-height: 1.5;
 }
 
 code#codeOutput {
     font-family: var(--code-font);
-    color: #a5b4fc; /* Light indigo for code text */
+    color: #a5b4fc;
     font-size: 0.95rem;
 }
 
@@ -147,17 +158,20 @@ footer {
     text-align: center;
     color: var(--text-muted);
     font-size: 0.875rem;
-    margin-top: auto;
-    padding-top: 2rem;
+    margin-top: 1rem;
 }
 
 /* Mobile Responsiveness */
 @media (max-width: 600px) {
     header h1 {
-        font-size: 2rem;
+        font-size: 2.5rem;
+    }
+    
+    body {
+        padding: 1rem;
     }
     
     button#correctBtn {
-        width: 100%; /* Full width button on mobile */
+        max-width: 100%; /* Full width on mobile */
     }
 }

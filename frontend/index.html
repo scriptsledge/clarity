@@ -11,23 +11,26 @@
     <div class="container">
         <header>
             <h1>Clarity ✨</h1>
-            <p>Paste your buggy Python code below and let AI fix it.</p>
+            <p>Paste your code (Python, C++, Java, JS). We'll fix bugs or suggest industry-standard variable naming.</p>
         </header>
 
         <main>
             <div class="code-editor">
-                <textarea id="codeInput" placeholder="def find_evens(numbers): ..."></textarea>
-                <button id="correctBtn">Correct My Code</button>
+                <textarea id="codeInput" placeholder="// Paste your code here...
+def c(x): return x*x
+// or
+int main() { printf('hello') }"></textarea>
+                <button id="correctBtn">Analyze & Improve</button>
             </div>
             
             <div class="code-output-container">
-                <h2>Corrected Code:</h2>
+                <h2>Suggested Code</h2>
                 <pre class="code-output"><code id="codeOutput"># Your corrected code will appear here...</code></pre>
             </div>
         </main>
 
         <footer>
-            <p>Built by the Clarity Team</p>
+            <p>Built by Team Clarity</p>
         </footer>
     </div>
 

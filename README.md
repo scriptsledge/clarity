@@ -15,36 +15,28 @@ An AI-powered assistant to make your code clearer, cleaner, and more correct.
 ---
 
 ### 🎯 Vision
-Our vision is to build a smart tool that helps developers write better code by automatically fixing bugs and improving code quality.
+Our vision is to build a smart, concise tool that helps students and professionals write industry-standard code. Whether it's fixing a missing semicolon in C++ or suggesting better variable names in Python, Clarity guides you toward cleaner, more professional code.
 
 ### 💡 The Core Idea
-At its heart, **Clarity** is an AI-powered code refiner. A developer can paste a piece of buggy or inefficient Python code into our application, and our AI model will analyze it and provide a corrected, improved version.
+**Clarity** is more than just a debugger. It is a multi-language Code Correction and Suggestion engine. 
 
-For example, a user might input this buggy code:
+Students often write code that "works" but uses poor practices (like variables named `a`, `b`, `x`). Clarity analyzes the code and suggests **industry-standard improvements**.
 
-**Input Code (With a Bug):**
+**Example (Naming Suggestion):**
+
+**Input Code (Working, but poor style):**
 ```python
-# This function should return a list of even numbers, but it's wrong
-def find_evens(numbers):
-  evens = []
-  for num in numbers:
-    if num % 2 == 1:  # Bug is here!
-      evens.append(num)
-  return evens
+def c(x, y):
+    return x * y
 ```
 
-And **Clarity** will provide the corrected version:
-
-**Output Code (Corrected by AI):**
+**Clarity's Output (Professional Standard):**
 ```python
-# This function should return a list of even numbers
-def find_evens(numbers):
-  evens = []
-  for num in numbers:
-    if num % 2 == 0:  # Corrected!
-      evens.append(num)
-  return evens
+def calculate_area(length, width):
+    return length * width
 ```
+
+It also handles standard bug fixes (syntax errors, missing brackets) across languages like **Python, C++, Java, and JavaScript**, without the fluff of massive chatbots.
 
 ### 🤝 Our Team Approach
 This is a learning project. We don't have separate "frontend" or "backend" teams. Everyone is encouraged to work across the entire stack to gain experience with all parts of the application, from the UI to the AI model.
