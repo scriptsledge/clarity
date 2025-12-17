@@ -15,6 +15,10 @@ app.add_middleware(
 class CodeSnippet(BaseModel):
     code: str
 
+@app.get("/api/health")
+def health_check():
+    return {"status": "ok"}
+
 @app.post("/api/correct")
 def correct_code_endpoint(snippet: CodeSnippet):
     corrected_code = correct_code_with_ai(snippet.code)

@@ -3,37 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clarity - AI Code Corrector</title>
+    <title>Clarity - AI Code Refactor</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 <body>
+    <div class="glass-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo"></div>
+            <nav>
+                <a href="#" class="active"><i class="ph ph-code"></i></a>
+                <a href="#"><i class="ph ph-git-diff"></i></a>
+            </nav>
+            <div class="status-dot"></div>
+        </aside>
 
-    <div class="container">
-        <header>
-            <h1>Clarity ✨</h1>
-            <p>Paste your code (Python, C++, Java, JS). We'll fix bugs or suggest industry-standard variable naming.</p>
-        </header>
+        <!-- Main Workspace -->
+        <main class="workspace">
+            <header>
+                <div class="title-group">
+                    <h1>Refactor Engine</h1>
+                    <span class="badge">v2.0</span>
+                </div>
+                <div class="actions">
+                    <button id="correctBtn" class="primary-btn">
+                        <i class="ph ph-lightning"></i> Optimize
+                    </button>
+                </div>
+            </header>
 
-        <main>
-            <div class="code-editor">
-                <textarea id="codeInput" placeholder="// Paste your code here...
-def c(x): return x*x
-// or
-int main() { printf('hello') }"></textarea>
-                <button id="correctBtn">Analyze & Improve</button>
+            <div class="editor-container">
+                <!-- Input -->
+                <div class="code-pane input-pane">
+                    <div class="pane-header">
+                        <span class="tab active"><i class="ph ph-file-code"></i> source.py</span>
+                        <span class="meta">Input</span>
+                    </div>
+                    <textarea id="codeInput" placeholder="# Paste legacy code here..." spellcheck="false"></textarea>
+                </div>
+
+                <!-- Flow Arrow -->
+                <div class="flow-arrow">
+                    <i class="ph ph-caret-right"></i>
+                </div>
+
+                <!-- Output -->
+                <div class="code-pane output-pane">
+                    <div class="pane-header">
+                        <span class="tab result"><i class="ph ph-sparkle"></i> optimized.py</span>
+                        <span class="meta success">Fixed</span>
+                    </div>
+                    <div class="output-scroll">
+                        <pre><code id="codeOutput"># Waiting for analysis...</code></pre>
+                    </div>
+                    <button class="copy-btn icon-only" title="Copy">
+                        <i class="ph ph-copy"></i>
+                    </button>
+                </div>
             </div>
-            
-            <div class="code-output-container">
-                <h2>Suggested Code</h2>
-                <pre class="code-output"><code id="codeOutput"># Your corrected code will appear here...</code></pre>
-            </div>
+
+            <!-- Footer with Tech Stats & Toggle -->
+            <footer>
+                <div class="stat-item">
+                    <i class="ph ph-terminal-window"></i> <span>Python</span>
+                </div>
+                <div class="stat-item">
+                    <i class="ph ph-cpu"></i> <span id="latency">Latency: --ms</span>
+                </div>
+                
+                <!-- Backend Switcher -->
+                <button id="backendToggle" class="glass-toggle" title="Switch Backend">
+                    <i class="ph ph-cloud mode-icon"></i> 
+                    <span class="mode-text">Cloud</span>
+                </button>
+
+                <div class="stat-item right">
+                    <span class="status-text">Connecting...</span>
+                </div>
+            </footer>
         </main>
-
-        <footer>
-            <p>Built by Team Clarity</p>
-        </footer>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
