@@ -1,39 +1,41 @@
 # 🏗️ Architecture & Design Patterns
 
-This project employs a **Microservices-lite** architecture orchestrated via Docker Compose for local development, mirroring a modern cloud deployment strategy.
+This project employs a **Microservices-lite** architecture orchestrated via Docker Compose, designed for flexibility across Local, Docker, and Cloud environments.
 
-## 🔄 The Routing Logic (Reverse Proxy)
+## 🔄 The Routing Logic (Smart Backend Discovery)
 
-We use **Nginx** as a unified gateway to solve the CORS (Cross-Origin Resource Sharing) and Environment Parity problems.
+The frontend uses a **Smart Discovery** mechanism to automatically determine the correct API endpoint based on the environment.
 
-### The Problem
-*   **Local Dev:** Frontend runs on `localhost:80`, Backend on `localhost:7860`. The browser blocks requests due to CORS.
-*   **Cloud:** Frontend might be on Vercel, Backend on Hugging Face. Hardcoding URLs breaks local dev.
+### 1. Production / Docker Container (`http://localhost`)
+When running inside the Nginx container, the app is served on standard HTTP ports (80/443).
+*   **Logic:** `window.location.port` is empty or '80'.
+*   **Result:** Uses relative path `''`.
+*   **Flow:** Requests go to `/api/...`, which Nginx intercepts and proxies to `http://backend:7860`.
 
-### The Solution: Gateway Pattern
-We treat the application as a single entity exposed on **Port 80**.
+### 2. Local Preview (`http://127.0.0.1:5500`)
+When developing locally (e.g., VS Code Live Server), the app runs on a non-standard port.
+*   **Logic:** `window.location.port` is '5500' (or similar).
+*   **Result:** Uses explicit URL `http://127.0.0.1:7860`.
+*   **Flow:** Requests bypass Nginx and hit the exposed Docker port directly.
 
-```mermaid
-graph LR
-    User[User / Browser] -->|http://localhost| Nginx[Nginx Gateway (Frontend Container)]
-    
-    subgraph Docker Network
-        Nginx -->|/ (Root)| Static[Static Files (HTML/JS)]
-        Nginx -->|/api/*| Backend[Python FastAPI (Backend Container)]
-    end
-```
+## 🌍 System Modes
 
-1.  **Frontend (`/`)**: Nginx serves the static assets directly.
-2.  **Backend (`/api`)**: Nginx transparently proxies traffic to the internal `backend:7860` address.
+The application supports three distinct backend modes, togglable via the UI:
 
-## ⚡ Environment Parity
+| Mode | Target URL | Use Case |
+| :--- | :--- | :--- |
+| **Cloud** (Default) | `https://...hf.space` | No setup required. Uses the public demo backend. |
+| **Docker** | `http://127.0.0.1:7860` | Running via `docker-compose up`. |
+| **Local** | `http://127.0.0.1:8000` | Running via `python backend/main.py` (Manual dev). |
 
-**Key Code Decision:** `script.js` uses a **relative path**:
-```javascript
-fetch('/api/correct', ...) // No hardcoded https://...
-```
+## 🧠 Intelligence Features
 
-*   **Locally:** Nginx catches `/api` and routes it to the backend container.
-*   **In Cloud:** Your load balancer (or Cloudflare/Netlify/Vercel rewrites) handles the `/api` route.
+### 1. Heuristic Language Detection
+The backend analyzes code snippets to automatically detect the programming language before processing.
+*   **C/C++**: Checks for `#include`, `std::`, `int main()`.
+*   **Java**: Checks for `public class`, `System.out`.
+*   **JavaScript**: Checks for `const`, `let`, `console.log`.
+*   **Python**: Checks for `def`, `import`, `print`.
 
-This ensures **Zero Config Changes** between Local and Production.
+### 2. Identity Guardrails
+A post-processing layer ensures the model maintains the "Clarity" persona. It sanitizes outputs to remove references to the underlying base model (e.g., Qwen, Alibaba) and enforces the team's credit (Team Clarity).

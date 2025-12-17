@@ -20,9 +20,13 @@
 
 ## 🔮 Overview
 
-**Clarity** is an AI-powered code assistant designed to automatically detect bugs, suggest refactoring improvements, and enforce industry-standard naming conventions across multiple languages (Python, C++, Java, JS).
+**Clarity** is an AI-powered code assistant designed to automatically detect bugs, suggest refactoring improvements, and enforce industry-standard naming conventions.
 
-Built on a robust **Microservices Architecture**, it leverages state-of-the-art LLMs (via Hugging Face Transformers) to understand code semantics and intent.
+### ✨ Key Features
+*   **Multi-Language Support:** Auto-detects and corrects **Python, C++, Java, and JavaScript**.
+*   **Instant Feedback:** Low-latency inference using optimized 0.5B parameter models.
+*   **Dual-Theme UI:** Professional dashboard available in **Catppuccin Mocha (Dark)** and **Latte (Light)**.
+*   **Hybrid Deployment:** Run entirely locally (Docker) or connect to the Cloud backend out-of-the-box.
 
 ## 🏗️ Architecture
 
@@ -46,18 +50,24 @@ graph LR
 
 ## 🚀 Quick Start
 
-### 1. Docker Compose (Recommended)
-Launch the entire stack with a single command.
+### 1. Instant Demo (Cloud Mode)
+You don't need to install anything! The app defaults to **Cloud Mode**.
+1.  Clone the repo: `git clone ...`
+2.  Open `frontend/index.html` in your browser.
+3.  Start coding immediately.
+
+### 2. Docker Compose (Local Privacy)
+Run the entire stack locally for zero-latency, private inference.
 
 ```bash
-git clone https://github.com/your-username/clarity.git
-cd clarity
 docker compose up --build
 ```
 *   **Frontend:** `http://localhost:80`
 *   **API Docs:** `http://localhost:8000/docs`
 
-### 2. Manual Development
+*Switch the toggle in the footer to **Docker** to connect.*
+
+### 3. Manual Development
 
 **Backend:**
 ```bash
@@ -67,7 +77,8 @@ uvicorn main:app --reload
 ```
 
 **Frontend:**
-Simply serve the `frontend/` directory using any static file server (e.g., `python -m http.server 3000`).
+Serve the `frontend/` directory (e.g., `python -m http.server 3000`).
+*Switch the toggle in the footer to **Local**.*
 
 ## 🛠️ Tech Stack
 
@@ -85,10 +96,10 @@ Simply serve the `frontend/` directory using any static file server (e.g., `pyth
 .
 ├── backend/                # FastAPI application & Model logic
 │   ├── main.py             # API Entrypoint
-│   └── model_service.py    # Inference logic
+│   └── model_service.py    # Inference logic & Language Detection
 ├── frontend/               # Static web assets
 │   ├── index.html          # Main UI
-│   ├── style.css           # Catppuccin Mocha Theme
+│   ├── style.css           # Catppuccin Theme System
 │   └── assets/             # Generated logos
 ├── generate_assets.py      # Procedural asset generator script
 └── docker-compose.yml      # Orchestration config
