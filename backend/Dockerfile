@@ -8,6 +8,12 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install any needed packages specified in requirements.txt
+# We need build tools for llama-cpp-python
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the current directory contents into the container at /app

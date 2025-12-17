@@ -1,142 +1,110 @@
-from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
+import os
+from llama_cpp import Llama
+from huggingface_hub import hf_hub_download
 
-# Initialize the model pipeline.
-# We use 'Qwen/Qwen2.5-0.5B-Instruct' which is small, fast, and works natively.
-model_id = "Qwen/Qwen2.5-0.5B-Instruct"
-print(f"Loading AI model ({model_id})...")
+# --- Configuration ---
+REPO_ID = "unsloth/rnj-1-instruct-GGUF"
+FILENAME = "rnj-1-instruct-BF16.gguf"
 
-code_fixer = None
+print(f"Initializing Clarity AI Engine...")
+print(f"Target Model: {REPO_ID} ({FILENAME})")
+
+llm = None
+
 try:
-    # 1. Try loading from local cache first (offline mode)
-    print("Attempting to load from local cache...")
-    model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True, local_files_only=True)
-    tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True, local_files_only=True)
-    code_fixer = pipeline("text-generation", model=model, tokenizer=tokenizer)
-    print("Success: Loaded model from local cache.")
-except Exception as local_err:
-    print(f"Local cache not found or incomplete: {local_err}")
-    print("Attempting to download model from Hugging Face (requires internet)...")
-    try:
-        # 2. Fallback to downloading (online mode)
-        code_fixer = pipeline("text-generation", model=model_id, trust_remote_code=True)
-        print("Success: Model downloaded and loaded.")
-    except Exception as remote_err:
-        print(f"CRITICAL: Failed to load model. Error: {remote_err}")
-        print("To run locally, ensure you have internet access for the first run to download the model.")
-        code_fixer = None
+    # 1. Download the model file efficiently (caches automatically)
+    print("Ensuring model file is downloaded...")
+    model_path = hf_hub_download(
+        repo_id=REPO_ID,
+        filename=FILENAME,
+        local_files_only=False  # Allow downloading if not cached
+    )
+    print(f"Model path: {model_path}")
+
+    # 2. Load the model into memory
+    # n_ctx=4096: Sets the context window (code can be long).
+    # n_threads=2: Optimizes for the 2 vCPU cores on HF Spaces.
+    print("Loading model into RAM (this may take a moment)...")
+    llm = Llama(
+        model_path=model_path,
+        n_ctx=4096,
+        n_threads=2,
+        verbose=False
+    )
+    print("Success: Clarity AI Model loaded.")
+
+except Exception as e:
+    print(f"CRITICAL ERROR: Failed to load model. {e}")
+    llm = None
 
 def detect_language(code: str) -> dict:
     """
     Simple heuristic to detect programming language.
-    Returns a dict with 'name' and 'extension'.
     """
     code = code.strip()
-    
-    # C/C++ Heuristics
     if "#include" in code or "std::" in code or "int main()" in code:
         return {"name": "C++", "ext": "cpp"}
-    
-    # Java Heuristics
     if "public class" in code or "System.out.println" in code:
         return {"name": "Java", "ext": "java"}
-    
-    # JavaScript Heuristics
     if "const " in code or "let " in code or "console.log" in code or "function" in code:
         return {"name": "JavaScript", "ext": "js"}
-    
-    # Python Heuristics (Default)
-    # Checks for def, import, print without parens (py2) or with (py3)
     if "def " in code or "import " in code or "print(" in code:
         return {"name": "Python", "ext": "py"}
-
-    # Default fallback
     return {"name": "Text", "ext": "txt"}
 
 def correct_code_with_ai(code: str) -> dict:
     """
-    Takes a buggy code snippet and returns a corrected version using the Qwen model,
-    along with detected language information.
+    Takes a buggy code snippet and returns a corrected version using the RNJ-1 model.
     """
     detected_lang = detect_language(code)
     
-    if not code_fixer:
+    if not llm:
         return {
             "code": "# Model failed to load. Check server logs.",
             "language": detected_lang
         }
 
-    # Few-Shot Priming: We inject a history to teach the small model (0.5B) its role.
-    # It learns to be:
-    # 1. Concise (Code only).
-    # 2. Multi-language (Supports C++, Java, JS, Python).
-    # 3. A "Style Guide" (Improves naming).
-    # 4. Aware of its creators.
+    # Prompt Engineering for RNJ-1 / Llama-3 style models
+    # We ask for a strict code-only response.
+    system_prompt = (
+        f"You are Clarity, an expert coding assistant created by Team Clarity. "
+        f"Your task is to fix bugs in {detected_lang['name']} code. "
+        f"Return ONLY the corrected code. Do not add explanations or markdown backticks."
+    )
+
     messages = [
-        {
-            "role": "system", 
-            "content": f"You are Clarity, a concise coding assistant created by Team Clarity. You are an expert in {detected_lang['name']}. Provide only the corrected code."
-        },
-        # Example 1: Identity & Credit
-        {
-            "role": "user", 
-            "content": "Who created you?"
-        },
-        {
-            "role": "assistant", 
-            "content": "I am Clarity, a minor project created by Team Clarity: Nipun Lakhera, Sahil Raikwar, Mo Zaid Sheikh, and Shivansh Nigam. Our Guide is Vipin Verma and our Co-guide is Swati Patel."
-        },
-        # Example 4: Simple Syntax Fix (C++) - Demonstrates multi-lang support
-        {
-            "role": "user", 
-            "content": "int main() { std::cout << \"Hello World\" return 0; }"
-        },
-        {
-            "role": "assistant", 
-            "content": "int main() { std::cout << \"Hello World\"; return 0; }"
-        },
-        # The actual user input
-        {
-            "role": "user", 
-            "content": f"{code}"
-        },
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": code}
     ]
     
     try:
-        # Generate the response
-        outputs = code_fixer(messages, max_new_tokens=512)
+        # Generate response using the Chat Completion API of llama-cpp
+        response = llm.create_chat_completion(
+            messages=messages,
+            max_tokens=1024,  # Allow for decent sized code blocks
+            temperature=0.2,  # Low temperature for precision
+            stop=["```"]      # Stop if it tries to close a block we didn't ask for
+        )
         
-        result = outputs[0]['generated_text']
+        # Extract text
+        raw_response = response["choices"][0]["message"]["content"]
         
-        if isinstance(result, list):
-            raw_response = result[-1]['content']
-        else:
-            raw_response = result
-
-        # --- IDENTITY GUARDRAIL (Post-Processing) ---
-        # Small models often hallucinate their training origin (e.g., "I am Qwen...").
-        # We strictly sanitize this to ensure the user always sees the correct identity.
-        forbidden_terms = ["Anthropic", "OpenAI", "Google", "Alibaba", "Qwen", "Claude", "Meta"]
-        cleaned_response = raw_response
-        
-        # Simple text replacement if the model slips up
-        for term in forbidden_terms:
-            if term in cleaned_response:
-                cleaned_response = cleaned_response.replace(term, "Team Clarity")
-        
-        # Specific fix for "I am [Wrong Name]" patterns
-        if "I am" in cleaned_response and "Clarity" not in cleaned_response:
-             # If it says "I am chatgpt", just force it.
-             import re
-             cleaned_response = re.sub(r"I am .+?(\.|$)", "I am Clarity AI Assistant, developed by Team Clarity.", cleaned_response)
+        # Clean up commonly occurring artifacts
+        cleaned_response = raw_response.strip()
+        if cleaned_response.startswith("```"):
+            # Remove first line (```language)
+            cleaned_response = "\n".join(cleaned_response.split("\n")[1:])
+        if cleaned_response.endswith("```"):
+            cleaned_response = cleaned_response[:-3]
 
         return {
-            "code": cleaned_response,
+            "code": cleaned_response.strip(),
             "language": detected_lang
         }
 
     except Exception as e:
-        print(f"An error occurred during AI correction: {e}")
+        print(f"Inference Error: {e}")
         return {
-            "code": f"# Unable to correct the code. Error: {str(e)}",
+            "code": f"# An error occurred during processing: {str(e)}",
             "language": detected_lang
         }

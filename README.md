@@ -24,7 +24,7 @@
 
 ### ✨ Key Features
 *   **Multi-Language Support:** Auto-detects and corrects **Python, C++, Java, and JavaScript**.
-*   **Instant Feedback:** Low-latency inference using optimized 0.5B parameter models.
+*   **Instant Feedback:** High-quality inference using the **RNJ-1-Instruct** (8B) model.
 *   **Dual-Theme UI:** Professional dashboard available in **Catppuccin Mocha (Dark)** and **Latte (Light)**.
 *   **Hybrid Deployment:** Run entirely locally (Docker) or connect to the Cloud backend out-of-the-box.
 
@@ -86,7 +86,7 @@ Serve the `frontend/` directory (e.g., `python -m http.server 3000`).
 | :--- | :--- | :--- |
 | **Frontend** | HTML5 / CSS3 / JS | Lightweight, vanilla implementation with **Mocha** styling |
 | **API Gateway** | FastAPI | High-performance async Python framework |
-| **Inference** | PyTorch / Transformers | Hugging Face LLM integration |
+| **Inference** | llama.cpp (GGUF) | High-performance CPU Inference |
 | **Serving** | Uvicorn / Nginx | Production-grade web servers |
 | **DevOps** | Docker Compose | Multi-container orchestration |
 

@@ -37,7 +37,7 @@ To build a web-based tool with a simple interface where a user can:
 | Component | Technology | Recommendation & Justification |
 | :--- | :--- | :--- |
 | **Backend** | **Python with FastAPI** | FastAPI is modern, fast, and has automatic interactive documentation (Swagger UI), which is excellent for API development and testing. |
-| **AI Model** | **Hugging Face Transformers** | We use `Qwen/Qwen2.5-0.5B-Instruct`, a small and fast model that works well for code instruction tasks. |
+| **AI Model** | **RNJ-1-Instruct (GGUF)** | We use `unsloth/rnj-1-instruct-GGUF` (8B), running via `llama.cpp` for efficient CPU inference on free-tier hardware. |
 | **Frontend** | **HTML, CSS, JavaScript** | For an MVP, vanilla web technologies are perfect. They are simple, have no build steps, and are easy to deploy. |
 
 ---
@@ -197,7 +197,7 @@ document.getElementById('correctBtn').addEventListener('click', () => {
     *   Add `transformers` and `torch` to `backend/requirements.txt`.
 2.  **Integrate the Model:**
     *   In `backend/model_service.py`, modify the `correct_code_with_ai` function.
-    *   Load the `Qwen/Qwen2.5-0.5B-Instruct` model.
+    *   Load the `Qwen/Qwen2.5-Coder-7B-Instruct` model.
     *   Pass the user's code to the model and get the real, AI-generated output.
     *   Handle potential errors during model inference.
 3.  **Test the Endpoint:**
@@ -210,65 +210,37 @@ document.getElementById('correctBtn').addEventListener('click', () => {
 cd backend
 uvicorn main:app --reload
 ```
-*Important: On the very first run, the application will download the AI model (approx. 1GB). This may take a few minutes. Wait until you see `Application startup complete` before testing.*
+*Important: On the very first run, the application will download the AI model (approx. 15GB). This may take a few minutes depending on your internet speed. Wait until you see `Application startup complete` before testing.*
 
 **File: `backend/requirements.txt` (Updated)**
 ```
 fastapi
 uvicorn
-transformers
-torch
+huggingface_hub
+llama-cpp-python
 ```
 
 **File: `backend/model_service.py` (Updated)**
 ```python
-from transformers import pipeline
+from llama_cpp import Llama
+from huggingface_hub import hf_hub_download
 
-# Initialize the model pipeline using a standard Transformers model.
-# We use 'Qwen/Qwen2.5-0.5B-Instruct' which is small, fast, and works natively with the installed libraries.
-print("Loading AI model (Qwen/Qwen2.5-0.5B-Instruct)...")
-try:
-    code_fixer = pipeline("text-generation", model="Qwen/Qwen2.5-0.5B-Instruct", trust_remote_code=True)
-except Exception as e:
-    print(f"Failed to load model: {e}")
-    code_fixer = None
+# Download the GGUF model
+model_path = hf_hub_download(
+    repo_id="unsloth/rnj-1-instruct-GGUF",
+    filename="rnj-1-instruct-BF16.gguf"
+)
+
+# Load into memory (CPU Optimized)
+llm = Llama(model_path=model_path, n_ctx=4096, n_threads=2)
 
 def correct_code_with_ai(code: str) -> str:
-    """
-    Takes a buggy code snippet and returns a corrected version using the Qwen AI model.
-    """
-    if not code_fixer:
-        return "# Model failed to load. Check server logs."
-
-    # Frame the input as a chat conversation
     messages = [
-        {"role": "system", "content": "You are a helpful Python coding assistant. Your task is to fix bugs in the provided code. Return ONLY the corrected code, without explanation."},
-        {"role": "user", "content": f"{code}"},
+        {"role": "system", "content": "You are a coding assistant. Fix the bugs in the code below. Return ONLY the code."},
+        {"role": "user", "content": code}
     ]
-    
-    try:
-        # Generate the response
-        # max_new_tokens controls how much new text is generated.
-        outputs = code_fixer(messages, max_new_tokens=512)
-        
-        # The pipeline for chat-like input typically returns a list of dictionaries.
-        # We need to parse the output to get just the assistant's response.
-        # The structure is usually: [{'generated_text': [...conversation including response...]}]
-        # or sometimes just the generated text depending on pipeline version.
-        
-        result = outputs[0]['generated_text']
-        
-        # If the result is the full conversation list (common in newer transformers for chat)
-        if isinstance(result, list):
-            # The last message should be the assistant's response
-            return result[-1]['content']
-        else:
-            # Fallback if it returns a string
-            return result
-
-    except Exception as e:
-        print(f"An error occurred during AI correction: {e}")
-        return f"# Unable to correct the code. Error: {str(e)}"
+    response = llm.create_chat_completion(messages=messages)
+    return response["choices"][0]["message"]["content"]
 ```
 
 ---
@@ -335,7 +307,7 @@ This is the most critical part because of the AI model's size. You don't "upload
 **Primary Recommendation: Hugging Face Spaces**
 
 *   **Why it's perfect:** Hugging Face Spaces is a free service *designed* for hosting ML applications. It provides you with a containerized environment where your FastAPI app can run.
-*   **How it works:** When your app starts in a Space, it will download the `Qwen/Qwen2.5-0.5B-Instruct` model from the Hub into the container's storage. The model will stay there, so it doesn't need to be re-downloaded on every request.
+*   **How it works:** When your app starts in a Space, it will download the `Qwen/Qwen2.5-Coder-7B-Instruct` model from the Hub into the container's storage. The model will stay there, so it doesn't need to be re-downloaded on every request.
 *   **Size Limits:** The free "Community" tier provides enough CPU, RAM, and storage for an MVP with a small model like ours. There are no hard project limits that would affect this MVP.
 
 **Alternative (Not Recommended for this MVP): Heroku, Render, etc.**

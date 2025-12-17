@@ -4,7 +4,7 @@ This document details the step-by-step process used to deploy the Clarity applic
 
 ## 1. Backend Deployment (Hugging Face Spaces)
 
-**Goal:** Host the FastAPI backend and the Qwen-0.5B AI model on a public server.
+**Goal:** Host the FastAPI backend and the RNJ-1 (8B) GGUF model on a public server.
 
 ### 1.1 Docker Configuration
 We utilized **Docker** to containerize the application, ensuring it runs consistently regardless of the host environment.
@@ -23,7 +23,7 @@ We used **Hugging Face Spaces** for its free access to CPU compute.
 1.  **Created Space:**
     *   **SDK:** Docker
     *   **Template:** Empty
-    *   **Hardware:** CPU Basic (2 vCPU, 16GB RAM) - *Selected because it is free and sufficient for the 0.5B model.*
+    *   **Hardware:** CPU Basic (2 vCPU, 16GB RAM) - *Perfect for our use case. The compressed GGUF model uses ~11GB, leaving ~5GB for inference.*
 2.  **File Upload (The "Free Tier" Workaround):**
     *   *Challenge:* The standard `git push` or SSH cloning requires a PRO account for "Dev Mode".
     *   *Solution:* We manually uploaded the `backend/` files via the Hugging Face web interface ("Files and versions" tab).
