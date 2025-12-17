@@ -6,7 +6,7 @@ const ENDPOINTS = {
 };
 
 // State: 'LOCAL' | 'DOCKER' | 'CLOUD'
-let CURRENT_MODE = 'LOCAL'; 
+let CURRENT_MODE = 'CLOUD'; 
 let API_BASE = ENDPOINTS[CURRENT_MODE];
 
 // DOM Elements
@@ -18,6 +18,12 @@ const latencyStat = document.getElementById('latency');
 const statusDot = document.querySelector('.status-dot');
 const statusText = document.querySelector('.status-text');
 const backendToggle = document.getElementById('backendToggle');
+
+// Settings Elements
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsModal = document.getElementById('settingsModal');
+const closeSettings = document.getElementById('closeSettings');
+const themeToggle = document.getElementById('themeToggle');
 
 // 1. Initialization
 async function initializeSystem() {
@@ -211,6 +217,45 @@ if (codeInput) {
             e.preventDefault();
             this.value = this.value.substring(0, this.selectionStart) + "    " + this.value.substring(this.selectionEnd);
             this.selectionStart = this.selectionEnd = this.selectionStart + 4;
+        }
+    });
+}
+
+// 6. Settings Logic
+if (settingsBtn && settingsModal && closeSettings) {
+    settingsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        settingsModal.classList.remove('hidden');
+    });
+
+    closeSettings.addEventListener('click', () => {
+        settingsModal.classList.add('hidden');
+    });
+
+    // Close on click outside
+    settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) {
+            settingsModal.classList.add('hidden');
+        }
+    });
+}
+
+// 7. Theme Toggle Logic
+if (themeToggle) {
+    let isLight = false;
+    themeToggle.addEventListener('click', () => {
+        isLight = !isLight;
+        document.body.classList.toggle('light-theme');
+        
+        const icon = themeToggle.querySelector('i');
+        const text = themeToggle.querySelector('span');
+        
+        if (isLight) {
+            icon.className = 'ph ph-sun';
+            text.textContent = 'Latte (Light)';
+        } else {
+            icon.className = 'ph ph-moon';
+            text.textContent = 'Mocha (Dark)';
         }
     });
 }

@@ -12,12 +12,15 @@
     <div class="glass-wrapper">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="logo"></div>
+            <div class="brand">
+                <div class="logo"></div>
+                <span class="brand-text">Clarity</span>
+            </div>
             <nav>
-                <a href="#" class="active"><i class="ph ph-code"></i></a>
-                <a href="#"><i class="ph ph-git-diff"></i></a>
+                <a href="#" class="active" title="Editor"><i class="ph ph-code"></i></a>
+                <a href="#" id="settingsBtn" title="Settings"><i class="ph ph-gear"></i></a>
             </nav>
-            <div class="status-dot"></div>
+            <div class="status-dot" title="System Status"></div>
         </aside>
 
         <!-- Main Workspace -->
@@ -84,6 +87,24 @@
                 </div>
             </footer>
         </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button id="closeSettings" class="close-btn"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label>Theme</label>
+                    <button id="themeToggle" class="secondary-btn">
+                        <i class="ph ph-moon"></i> <span>Mocha (Dark)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
