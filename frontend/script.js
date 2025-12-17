@@ -1,7 +1,8 @@
 // CONFIGURATION
+const isDev = window.location.port !== '' && window.location.port !== '80' && window.location.port !== '443';
 const ENDPOINTS = {
-    LOCAL: 'http://127.0.0.1:8000',
-    DOCKER: '', // Relative path via Nginx
+    LOCAL: 'http://127.0.0.1:8000',  // python backend/main.py
+    DOCKER: isDev ? 'http://127.0.0.1:7860' : '', // Smart switching: Dev -> Direct, Prod -> Nginx
     CLOUD: 'https://scriptsledge-clarity-backend.hf.space'
 };
 
