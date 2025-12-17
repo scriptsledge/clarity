@@ -21,6 +21,10 @@ def health_check():
 
 @app.post("/api/correct")
 def correct_code_endpoint(snippet: CodeSnippet):
-    corrected_code = correct_code_with_ai(snippet.code)
-    return {"corrected_code": corrected_code}
+    result = correct_code_with_ai(snippet.code)
+    # result is now a dict: {"code": "...", "language": {"name": "...", "ext": "..."}}
+    return {
+        "corrected_code": result["code"],
+        "language": result["language"]
+    }
 

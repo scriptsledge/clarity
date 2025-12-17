@@ -19,6 +19,11 @@ const statusDot = document.querySelector('.status-dot');
 const statusText = document.querySelector('.status-text');
 const backendToggle = document.getElementById('backendToggle');
 
+// Language UI Elements
+const inputTab = document.getElementById('inputTab');
+const outputTab = document.getElementById('outputTab');
+const langStat = document.getElementById('langStat');
+
 // Settings Elements
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsModal = document.getElementById('settingsModal');
@@ -169,6 +174,14 @@ if (correctBtn) {
             codeOutput.style.opacity = '1';
             codeOutput.textContent = data.corrected_code;
             
+            // Auto-update Language UI if data exists
+            if (data.language) {
+                const { name, ext } = data.language;
+                if (langStat) langStat.textContent = name;
+                if (inputTab) inputTab.innerHTML = `<i class="ph ph-file-code"></i> source.${ext}`;
+                if (outputTab) outputTab.innerHTML = `<i class="ph ph-sparkle"></i> optimized.${ext}`;
+            }
+
             const endTime = performance.now();
             const lat = Math.round(endTime - startTime);
             if (latencyStat) latencyStat.textContent = `Latency: ${lat}ms`;

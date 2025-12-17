@@ -41,7 +41,7 @@
                 <!-- Input -->
                 <div class="code-pane input-pane">
                     <div class="pane-header">
-                        <span class="tab active"><i class="ph ph-file-code"></i> source.py</span>
+                        <span id="inputTab" class="tab active"><i class="ph ph-file-code"></i> source.py</span>
                         <span class="meta">Input</span>
                     </div>
                     <textarea id="codeInput" placeholder="# Paste legacy code here..." spellcheck="false"></textarea>
@@ -55,7 +55,7 @@
                 <!-- Output -->
                 <div class="code-pane output-pane">
                     <div class="pane-header">
-                        <span class="tab result"><i class="ph ph-sparkle"></i> optimized.py</span>
+                        <span id="outputTab" class="tab result"><i class="ph ph-sparkle"></i> optimized.py</span>
                         <span class="meta success">Fixed</span>
                     </div>
                     <div class="output-scroll">
@@ -70,7 +70,7 @@
             <!-- Footer with Tech Stats & Toggle -->
             <footer>
                 <div class="stat-item">
-                    <i class="ph ph-terminal-window"></i> <span>Python</span>
+                    <i class="ph ph-terminal-window"></i> <span id="langStat">Python</span>
                 </div>
                 <div class="stat-item">
                     <i class="ph ph-cpu"></i> <span id="latency">Latency: --ms</span>

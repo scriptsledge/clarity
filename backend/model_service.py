@@ -25,12 +25,45 @@ except Exception as local_err:
         print("To run locally, ensure you have internet access for the first run to download the model.")
         code_fixer = None
 
-def correct_code_with_ai(code: str) -> str:
+def detect_language(code: str) -> dict:
     """
-    Takes a buggy code snippet and returns a corrected version using the Qwen model.
+    Simple heuristic to detect programming language.
+    Returns a dict with 'name' and 'extension'.
     """
+    code = code.strip()
+    
+    # C/C++ Heuristics
+    if "#include" in code or "std::" in code or "int main()" in code:
+        return {"name": "C++", "ext": "cpp"}
+    
+    # Java Heuristics
+    if "public class" in code or "System.out.println" in code:
+        return {"name": "Java", "ext": "java"}
+    
+    # JavaScript Heuristics
+    if "const " in code or "let " in code or "console.log" in code or "function" in code:
+        return {"name": "JavaScript", "ext": "js"}
+    
+    # Python Heuristics (Default)
+    # Checks for def, import, print without parens (py2) or with (py3)
+    if "def " in code or "import " in code or "print(" in code:
+        return {"name": "Python", "ext": "py"}
+
+    # Default fallback
+    return {"name": "Text", "ext": "txt"}
+
+def correct_code_with_ai(code: str) -> dict:
+    """
+    Takes a buggy code snippet and returns a corrected version using the Qwen model,
+    along with detected language information.
+    """
+    detected_lang = detect_language(code)
+    
     if not code_fixer:
-        return "# Model failed to load. Check server logs."
+        return {
+            "code": "# Model failed to load. Check server logs.",
+            "language": detected_lang
+        }
 
     # Few-Shot Priming: We inject a history to teach the small model (0.5B) its role.
     # It learns to be:
@@ -41,7 +74,7 @@ def correct_code_with_ai(code: str) -> str:
     messages = [
         {
             "role": "system", 
-            "content": "You are Clarity, a concise coding assistant. You were created as a minor project by Team Clarity (Nipun Lakhera, Sahil Raikwar, Mo Zaid Sheikh, Shivansh Nigam) at the School of Information Technology. Your purpose is to provide quick solutions for programming tasks across Python, C++, Java, and JavaScript. Output ONLY the code or direct answer."
+            "content": f"You are Clarity, a concise coding assistant created by Team Clarity. You are an expert in {detected_lang['name']}. Provide only the corrected code."
         },
         # Example 1: Identity & Credit
         {
@@ -50,34 +83,7 @@ def correct_code_with_ai(code: str) -> str:
         },
         {
             "role": "assistant", 
-            "content": "I am Clarity, a minor project created by Team Clarity: Nipun Lakhera, Sahil Raikwar, Mo Zaid Sheikh, and Shivansh Nigam at the School of Information Technology. Our Guide is Vipin Verma and our Co-guide is Swati Patel."
-        },
-        # Example 2: Ask about Vipin Sir
-        {
-            "role": "user", 
-            "content": "Do you know Vipin Sir?"
-        },
-        {
-            "role": "assistant", 
-            "content": "Yes, Vipin Verma is the Guide for Team Clarity's minor project. He supervised the team during its development."
-        },
-        # Example 3: Ask about Swati Patel
-        {
-            "role": "user", 
-            "content": "Do you know Swati?"
-        },
-        {
-            "role": "assistant", 
-            "content": "Yes, Swati Patel is the Co-guide for Team Clarity's minor project. She is very helpful and friendly, and provided supervision to the team during its development."
-        },
-        # Example 4: Purpose & Capabilities
-        {
-            "role": "user", 
-            "content": "What can you do?"
-        },
-        {
-            "role": "assistant", 
-            "content": "I exist to help you write professional, industry-standard code. My core capabilities are:\n1. **Bug Fixing:** I instantly correct errors in Python, C++, Java, and JavaScript.\n2. **Smart Refactoring:** I suggest professional variable naming and structure to replace poor coding habits.\n3. **Guidance:** I help students and developers bridge the gap between working code and clean code."
+            "content": "I am Clarity, a minor project created by Team Clarity: Nipun Lakhera, Sahil Raikwar, Mo Zaid Sheikh, and Shivansh Nigam. Our Guide is Vipin Verma and our Co-guide is Swati Patel."
         },
         # Example 4: Simple Syntax Fix (C++) - Demonstrates multi-lang support
         {
@@ -87,15 +93,6 @@ def correct_code_with_ai(code: str) -> str:
         {
             "role": "assistant", 
             "content": "int main() { std::cout << \"Hello World\"; return 0; }"
-        },
-        # Example 5: Style & Naming Suggestion (Python) - Demonstrates "Industry Standard" improvement
-        {
-            "role": "user", 
-            "content": "def c(x, y): return x * y"
-        },
-        {
-            "role": "assistant", 
-            "content": "def calculate_product(factor_a, factor_b):\n    return factor_a * factor_b"
         },
         # The actual user input
         {
@@ -132,8 +129,14 @@ def correct_code_with_ai(code: str) -> str:
              import re
              cleaned_response = re.sub(r"I am .+?(\.|$)", "I am Clarity AI Assistant, developed by Team Clarity.", cleaned_response)
 
-        return cleaned_response
+        return {
+            "code": cleaned_response,
+            "language": detected_lang
+        }
 
     except Exception as e:
         print(f"An error occurred during AI correction: {e}")
-        return f"# Unable to correct the code. Error: {str(e)}"
+        return {
+            "code": f"# Unable to correct the code. Error: {str(e)}",
+            "language": detected_lang
+        }
