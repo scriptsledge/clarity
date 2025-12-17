@@ -26,6 +26,30 @@
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
+/* Modern Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--surface1);
+    border-radius: 5px;
+    border: 2px solid var(--crust); /* Creates padding effect */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--overlay0);
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
 /* Catppuccin Latte Palette (Light) */
 body.light-theme {
     --base: #eff1f5;
