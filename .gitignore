@@ -16,6 +16,16 @@ uvicorn.log
 .DS_Store
 *.swo
 
+# AI Models and Large Assets
+models/
+backend/models/
+*.gguf
+*.bin
+*.safetensors
+*.pt
+*.pth
+.cache/
+
 # Node (if you decide to use frontend build tools later)
 node_modules/
 dist/

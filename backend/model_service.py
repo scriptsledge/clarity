@@ -1,41 +1,33 @@
 import os
-from llama_cpp import Llama
-from huggingface_hub import hf_hub_download
+import torch
+from transformers import pipeline
 
 # --- Configuration ---
-REPO_ID = "unsloth/rnj-1-instruct-GGUF"
-FILENAME = "rnj-1-instruct-BF16.gguf"
+# Switching to 3B model for faster download and inference as requested
+MODEL_ID = "Qwen/Qwen2.5-Coder-3B-Instruct"
 
-print(f"Initializing Clarity AI Engine...")
-print(f"Target Model: {REPO_ID} ({FILENAME})")
+print(f"Initializing Clarity AI Engine (Transformers Pipeline)...")
+print(f"Target Model: {MODEL_ID}")
 
-llm = None
+# Optimize for speed: use float16 if GPU is available
+dtype = torch.float16 if torch.cuda.is_available() else "auto"
+
+pipe = None
 
 try:
-    # 1. Download the model file efficiently (caches automatically)
-    print("Ensuring model file is downloaded...")
-    model_path = hf_hub_download(
-        repo_id=REPO_ID,
-        filename=FILENAME,
-        local_files_only=False  # Allow downloading if not cached
-    )
-    print(f"Model path: {model_path}")
-
-    # 2. Load the model into memory
-    # n_ctx=4096: Sets the context window (code can be long).
-    # n_threads=2: Optimizes for the 2 vCPU cores on HF Spaces.
-    print("Loading model into RAM (this may take a moment)...")
-    llm = Llama(
-        model_path=model_path,
-        n_ctx=4096,
-        n_threads=2,
-        verbose=False
+    print("Loading model pipeline...")
+    # Using the exact pattern you provided
+    pipe = pipeline(
+        "text-generation",
+        model=MODEL_ID,
+        device_map="auto",
+        torch_dtype=dtype
     )
     print("Success: Clarity AI Model loaded.")
 
 except Exception as e:
     print(f"CRITICAL ERROR: Failed to load model. {e}")
-    llm = None
+    pipe = None
 
 def detect_language(code: str) -> dict:
     """
@@ -54,22 +46,26 @@ def detect_language(code: str) -> dict:
 
 def correct_code_with_ai(code: str) -> dict:
     """
-    Takes a buggy code snippet and returns a corrected version using the RNJ-1 model.
+    Takes a buggy code snippet and returns a corrected version using the Qwen model pipeline.
     """
     detected_lang = detect_language(code)
     
-    if not llm:
+    if not pipe:
         return {
             "code": "# Model failed to load. Check server logs.",
             "language": detected_lang
         }
 
-    # Prompt Engineering for RNJ-1 / Llama-3 style models
-    # We ask for a strict code-only response.
     system_prompt = (
-        f"You are Clarity, an expert coding assistant created by Team Clarity. "
-        f"Your task is to fix bugs in {detected_lang['name']} code. "
-        f"Return ONLY the corrected code. Do not add explanations or markdown backticks."
+        "You are 'Clarity', an intelligent code correction and refactoring engine. "
+        f"Your goal is to take buggy or suboptimal {detected_lang['name']} code and provide a clean, "
+        "production-ready version. \n\n"
+        "Tasks:\n"
+        "1. Fix all syntax and logical bugs.\n"
+        "2. Improve code structure and readability (refactoring).\n"
+        "3. Enforce industry-standard naming conventions.\n"
+        "4. Maintain the original intent and logic of the code.\n\n"
+        "Constraint: Return ONLY the corrected code. No explanations, no markdown backticks, no comments unless necessary for clarity."
     )
 
     messages = [
@@ -78,27 +74,31 @@ def correct_code_with_ai(code: str) -> dict:
     ]
     
     try:
-        # Generate response using the Chat Completion API of llama-cpp
-        response = llm.create_chat_completion(
-            messages=messages,
-            max_tokens=1024,  # Allow for decent sized code blocks
-            temperature=0.2,  # Low temperature for precision
-            stop=["```"]      # Stop if it tries to close a block we didn't ask for
+        # Standard pipeline call
+        outputs = pipe(
+            messages,
+            max_new_tokens=1024,
+            return_full_text=False
         )
         
-        # Extract text
-        raw_response = response["choices"][0]["message"]["content"]
+        # Extract content
+        generated_msg = outputs[0]["generated_text"]
         
-        # Clean up commonly occurring artifacts
-        cleaned_response = raw_response.strip()
-        if cleaned_response.startswith("```"):
-            # Remove first line (```language)
-            cleaned_response = "\n".join(cleaned_response.split("\n")[1:])
-        if cleaned_response.endswith("```"):
-            cleaned_response = cleaned_response[:-3]
+        if isinstance(generated_msg, list):
+             response_content = generated_msg[-1]["content"]
+        else:
+             response_content = str(generated_msg)
+
+        # Clean up
+        cleaned_response = response_content.strip()
+        if "```" in cleaned_response:
+             lines = cleaned_response.split("\n")
+             if lines[0].startswith("```"): lines = lines[1:]
+             if lines and lines[-1].strip().startswith("```"): lines = lines[:-1]
+             cleaned_response = "\n".join(lines).strip()
 
         return {
-            "code": cleaned_response.strip(),
+            "code": cleaned_response,
             "language": detected_lang
         }
 

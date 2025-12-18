@@ -4,7 +4,7 @@ This document details the step-by-step process used to deploy the Clarity applic
 
 ## 1. Backend Deployment (Hugging Face Spaces)
 
-**Goal:** Host the FastAPI backend and the RNJ-1 (8B) GGUF model on a public server.
+**Goal:** Host the FastAPI backend and the Qwen 2.5 Coder 3B model on a public server.
 
 ### 1.1 Docker Configuration
 We utilized **Docker** to containerize the application, ensuring it runs consistently regardless of the host environment.
