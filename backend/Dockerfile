@@ -7,13 +7,7 @@ WORKDIR /app
 # Copy the requirements file into the container at /app
 COPY requirements.txt .
 
-# Install any needed packages specified in requirements.txt
-# We need build tools for llama-cpp-python
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    && rm -rf /var/lib/apt/lists/*
-
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the current directory contents into the container at /app
@@ -23,7 +17,7 @@ COPY . .
 RUN useradd -m -u 1000 user
 USER user
 ENV HOME=/home/user \
-	PATH=/home/user/.local/bin:$PATH
+    PATH=/home/user/.local/bin:$PATH
 
 # Expose port 7860 (Hugging Face Spaces default)
 EXPOSE 7860
