@@ -396,6 +396,49 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
     }
 });
 
+// 8. Font Size Logic
+const inputFS = document.getElementById('inputFontSize');
+const outputFS = document.getElementById('outputFontSize');
+const inVal = document.getElementById('inSizeVal');
+const outVal = document.getElementById('outSizeVal');
+
+function updateFont(target, size, labelEl, storageKey) {
+    if (!target) return;
+    target.style.fontSize = `${size}px`;
+    // Update line-height to maintain readability
+    target.style.lineHeight = '1.6'; 
+    if (labelEl) labelEl.textContent = `${size}px`;
+    localStorage.setItem(storageKey, size);
+}
+
+if (inputFS && codeInput) {
+    // Load saved
+    const savedIn = localStorage.getItem('clarity-fs-in') || '14';
+    inputFS.value = savedIn;
+    updateFont(codeInput, savedIn, inVal, 'clarity-fs-in');
+
+    inputFS.addEventListener('input', (e) => {
+        updateFont(codeInput, e.target.value, inVal, 'clarity-fs-in');
+    });
+}
+
+if (outputFS && codeOutput) {
+    // Load saved
+    const savedOut = localStorage.getItem('clarity-fs-out') || '14';
+    outputFS.value = savedOut;
+    // Apply to parent PRE as well for HLJS inheritance
+    const pre = codeOutput.parentElement;
+    if (pre) pre.style.fontSize = `${savedOut}px`;
+    
+    updateFont(codeOutput, savedOut, outVal, 'clarity-fs-out');
+
+    outputFS.addEventListener('input', (e) => {
+        const size = e.target.value;
+        if (pre) pre.style.fontSize = `${size}px`;
+        updateFont(codeOutput, size, outVal, 'clarity-fs-out');
+    });
+}
+
 // Start
 initializeSystem();
 // Auto-Check every 30s

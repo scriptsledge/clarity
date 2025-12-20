@@ -617,6 +617,82 @@ body.light-theme .glass-toggle {
     border-color: var(--lavender);
 }
 
+/* Font Size Controls */
+.font-control {
+    display: flex; gap: 1rem; width: 100%;
+}
+
+.control-group {
+    flex: 1;
+    display: flex; flex-direction: column; gap: 6px;
+}
+
+.label-small {
+    font-size: 0.75rem; color: var(--subtext0);
+}
+
+.slider-wrapper {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface0);
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--surface1);
+}
+
+.val-text {
+    font-family: var(--font-mono);
+    font-size: 0.8rem; color: var(--teal);
+    min-width: 32px;
+}
+
+/* Custom Range Slider */
+input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    background: transparent;
+}
+
+input[type=range]:focus { outline: none; }
+
+/* Track */
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%; height: 6px;
+    cursor: pointer;
+    background: var(--surface2);
+    border-radius: 3px;
+}
+
+/* Thumb */
+input[type=range]::-webkit-slider-thumb {
+    height: 16px; width: 16px;
+    border-radius: 50%;
+    background: var(--lavender);
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -5px; /* Center thumb on track */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.1s;
+}
+
+input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+/* Firefox Support */
+input[type=range]::-moz-range-track {
+    width: 100%; height: 6px;
+    cursor: pointer;
+    background: var(--surface2);
+    border-radius: 3px;
+}
+input[type=range]::-moz-range-thumb {
+    height: 16px; width: 16px;
+    border: none;
+    border-radius: 50%;
+    background: var(--lavender);
+    cursor: pointer;
+}
+
 /* Mobile */
 @media (max-width: 900px) {
     .glass-wrapper { width: 100vw; height: 100vh; border-radius: 0; border: none; }

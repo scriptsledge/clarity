@@ -10,7 +10,7 @@
   <!-- Badges: Catppuccin Mocha Themed -->
   <p>
     <img src="https://img.shields.io/badge/FastAPI-Backend-b4befe?style=for-the-badge&logo=fastapi&logoColor=1e1e2e" alt="FastAPI">
-    <img src="https://img.shields.io/badge/PyTorch-AI-94e2d5?style=for-the-badge&logo=pytorch&logoColor=1e1e2e" alt="PyTorch">
+    <img src="https://img.shields.io/badge/llama.cpp-Inference-fab387?style=for-the-badge&logo=cplusplus&logoColor=1e1e2e" alt="llama.cpp">
     <img src="https://img.shields.io/badge/Docker-Containerized-a6e3a1?style=for-the-badge&logo=docker&logoColor=1e1e2e" alt="Docker">
     <img src="https://img.shields.io/badge/License-MIT-f38ba8?style=for-the-badge" alt="License">
   </p>
@@ -36,9 +36,18 @@ Dive deeper into how Clarity works and how you can contribute:
 **Clarity** is an AI-powered code assistant designed to automatically detect bugs, suggest refactoring improvements, and enforce industry-standard naming conventions.
 
 ### ✨ Key Features
-*   **Multi-Language Support:** Auto-detects and corrects **Python, C++, Java, and JavaScript**.
-*   **Instant Feedback:** High-quality inference using the **Qwen 2.5 Coder 3B** model.
-*   **Dual-Theme UI:** Professional dashboard available in **Catppuccin Mocha (Dark)** and **Latte (Light)**.
+*   **Multi-Language Support (20+):** Auto-detects and corrects major languages including:
+    *   `Python`, `C++`, `Java`, `JavaScript`, `TypeScript`, `Go`, `Rust`
+    *   `C#`, `C`, `Swift`, `Kotlin`, `Ruby`, `PHP`, `Dart`
+    *   `Scala`, `Elixir`, `Erlang`, `Racket`, `SQL`, `HTML/CSS`
+*   **Instant Feedback:** High-quality inference using the **Qwen 2.5 Coder 7B (GGUF)** model running on `llama.cpp`.
+*   **Adaptive Theming:** Full **Catppuccin** support with 4 flavors:
+    *   🌻 **Latte** (Light)
+    *   🪴 **Frappé** (Soft Dark)
+    *   🌺 **Macchiato** (Medium Dark)
+    *   🌿 **Mocha** (Deep Dark)
+    *   🖥️ **Auto-Switching** based on system preference.
+*   **Professional UI:** Glassmorphism design with real-time Syntax Highlighting (Highlight.js) and Font Size controls.
 *   **Hybrid Deployment:** Run entirely locally (Docker) or connect to the Cloud backend out-of-the-box.
 
 ## 🏗️ Architecture
@@ -50,15 +59,15 @@ The system is containerized and composed of a decoupled frontend and inference e
 graph LR
     User[User] -->|Code Snippet| FE[Frontend (Nginx/HTML)];
     FE -->|REST API| API[FastAPI Gateway];
-    API -->|Inference Request| Model[Transformer Model];
-    Model -->|Corrected Code| API;
+    API -->|Inference Request| Engine[llama.cpp Engine];
+    Engine -->|Corrected Code| API;
     API -->|JSON Response| FE;
     FE -->|Display| User;
     
     style User fill:#fab387,stroke:#fab387,color:#1e1e2e
     style FE fill:#94e2d5,stroke:#94e2d5,color:#1e1e2e
     style API fill:#b4befe,stroke:#b4befe,color:#1e1e2e
-    style Model fill:#45475a,stroke:#cdd6f4,color:#cdd6f4
+    style Engine fill:#45475a,stroke:#cdd6f4,color:#cdd6f4
 ```
 
 ## 🚀 Quick Start
@@ -97,9 +106,10 @@ Serve the `frontend/` directory (e.g., `python -m http.server 3000`).
 
 | Component | Technology | Description |
 | :--- | :--- | :--- |
-| **Frontend** | HTML5 / CSS3 / JS | Lightweight, vanilla implementation with **Mocha** styling |
+| **Frontend** | HTML5 / CSS3 / JS | **Catppuccin** Themed UI with **Highlight.js** |
 | **API Gateway** | FastAPI | High-performance async Python framework |
-| **Inference** | Transformers | High-performance AI Inference |
+| **Inference** | llama-cpp-python | CPU-Optimized Inference (GGUF) |
+| **Model** | Qwen 2.5 Coder 7B | State-of-the-art Coding LLM (4-bit) |
 | **Serving** | Uvicorn / Nginx | Production-grade web servers |
 | **DevOps** | Docker Compose | Multi-container orchestration |
 
