@@ -367,17 +367,6 @@ function applyTheme(theme) {
         }
     } else {
         body.classList.add(`theme-${theme}`);
-        if (theme === 'latte') isLightMode = true;
-    }
-    
-    // Swap Highlight.js Theme
-    const hljsLink = document.getElementById('hljsTheme');
-    if (hljsLink) {
-        if (isLightMode) {
-            hljsLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css';
-        } else {
-            hljsLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/mocha.min.css';
-        }
     }
     
     // Save preference and update UI

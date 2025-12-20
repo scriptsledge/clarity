@@ -424,8 +424,24 @@ pre { margin: 0; padding: 0; }
 code.hljs {
     background: transparent !important;
     font-family: var(--font-mono);
-    padding: 0; /* Let our container handle padding */
+    padding: 0;
+    color: var(--text);
 }
+
+/* Catppuccin Syntax Highlighting - Adhering to Style Guide */
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in, .hljs-name, .hljs-tag { color: var(--mauve); }
+.hljs-string, .hljs-title.class_, .hljs-section { color: var(--green); }
+.hljs-variable, .hljs-template-variable, .hljs-attribute { color: var(--text); }
+.hljs-type, .hljs-title, .hljs-number, .hljs-symbol, .hljs-bullet, .hljs-addition, .hljs-meta, .hljs-link { color: var(--yellow); }
+.hljs-comment, .hljs-quote { color: var(--overlay2); font-style: italic; }
+.hljs-doctag, .hljs-keyword, .hljs-formula { color: var(--mauve); }
+.hljs-string, .hljs-regexp, .hljs-addition { color: var(--green); }
+.hljs-number, .hljs-literal { color: var(--peach); }
+.hljs-function, .hljs-title.function_ { color: var(--blue); }
+.hljs-attr, .hljs-property { color: var(--sapphire); }
+.hljs-punctuation, .hljs-operator { color: var(--sky); }
+.hljs-params { color: var(--maroon); }
+.hljs-meta { color: var(--rosewater); }
 
 /* Fallback for when HLJS isn't running yet */
 code { 
