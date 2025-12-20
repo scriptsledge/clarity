@@ -100,11 +100,25 @@
                 <button id="closeSettings" class="close-btn"><i class="ph ph-x"></i></button>
             </div>
             <div class="modal-body">
-                <div class="setting-item">
-                    <label>Theme</label>
-                    <button id="themeToggle" class="secondary-btn">
-                        <i class="ph ph-moon"></i> <span>Mocha (Dark)</span>
-                    </button>
+                <div class="setting-item column-layout">
+                    <label>Theme Preference</label>
+                    <div class="theme-grid" id="themeGrid">
+                        <button class="theme-option" data-value="system" title="System Auto">
+                            <i class="ph ph-desktop"></i> <span>Auto</span>
+                        </button>
+                        <button class="theme-option" data-value="latte" title="Latte (Light)">
+                            <i class="ph ph-sun"></i> <span>Latte</span>
+                        </button>
+                        <button class="theme-option" data-value="frappe" title="Frappé (Dark)">
+                            <i class="ph ph-coffee"></i> <span>Frappé</span>
+                        </button>
+                        <button class="theme-option" data-value="macchiato" title="Macchiato (Dark)">
+                            <i class="ph ph-cloud-moon"></i> <span>Macch.</span>
+                        </button>
+                        <button class="theme-option" data-value="mocha" title="Mocha (Dark)">
+                            <i class="ph ph-moon-stars"></i> <span>Mocha</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

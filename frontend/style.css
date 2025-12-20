@@ -1,22 +1,36 @@
 :root {
-    /* Catppuccin Mocha Palette (Dark) */
+    /* Default: Catppuccin Mocha (Dark) */
     --base: #1e1e2e;
     --mantle: #181825;
     --crust: #11111b;
+    
     --text: #cdd6f4;
-    --subtext0: #a6adc8;
     --subtext1: #bac2de;
-    --surface0: #313244;
-    --surface1: #45475a;
+    --subtext0: #a6adc8;
+    
+    --overlay2: #9399b2;
+    --overlay1: #7f849c;
     --overlay0: #6c7086;
     
+    --surface2: #585b70;
+    --surface1: #45475a;
+    --surface0: #313244;
+    
     --lavender: #b4befe;
+    --blue: #89b4fa;
+    --sapphire: #74c7ec;
+    --sky: #89dceb;
     --teal: #94e2d5;
     --green: #a6e3a1;
+    --yellow: #f9e2af;
     --peach: #fab387;
+    --maroon: #eba0ac;
     --red: #f38ba8;
-    --blue: #89b4fa;
-    
+    --mauve: #cba6f7;
+    --pink: #f5c2e7;
+    --flamingo: #f2cdcd;
+    --rosewater: #f5e0dc;
+
     --font-sans: 'Inter', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     
@@ -26,58 +40,134 @@
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
-/* Modern Scrollbar */
-::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--surface1);
-    border-radius: 5px;
-    border: 2px solid var(--crust); /* Creates padding effect */
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--overlay0);
-}
-
-::-webkit-scrollbar-corner {
-    background: transparent;
-}
-
-/* Catppuccin Latte Palette (Light) */
-body.light-theme {
+/* Catppuccin Latte (Light) */
+body.theme-latte {
     --base: #eff1f5;
     --mantle: #e6e9ef;
     --crust: #dce0e8;
+    
     --text: #4c4f69;
-    --subtext0: #6c6f85;
     --subtext1: #5c5f77;
-    --surface0: #ccd0da;
-    --surface1: #bcc0cc;
+    --subtext0: #6c6f85;
+    
+    --overlay2: #7c7f93;
+    --overlay1: #8c8fa1;
     --overlay0: #9ca0b0;
     
+    --surface2: #acb0be;
+    --surface1: #bcc0cc;
+    --surface0: #ccd0da;
+    
     --lavender: #7287fd;
+    --blue: #1e66f5;
+    --sapphire: #209fb5;
+    --sky: #04a5e5;
     --teal: #179299;
     --green: #40a02b;
+    --yellow: #df8e1d;
     --peach: #fe640b;
+    --maroon: #e64553;
     --red: #d20f39;
-    --blue: #1e66f5;
+    --mauve: #8839ef;
+    --pink: #ea76cb;
+    --flamingo: #dd7878;
+    --rosewater: #dc8a78;
 
     --glass-bg: rgba(239, 241, 245, 0.75);
     --glass-border: rgba(23, 146, 153, 0.1);
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
 }
 
+/* Catppuccin Frappé (Dark) */
+body.theme-frappe {
+    --base: #303446;
+    --mantle: #292c3c;
+    --crust: #232634;
+    
+    --text: #c6d0f5;
+    --subtext1: #b5bfe2;
+    --subtext0: #a5adce;
+    
+    --overlay2: #949cbb;
+    --overlay1: #838ba7;
+    --overlay0: #737994;
+    
+    --surface2: #626880;
+    --surface1: #51576d;
+    --surface0: #414559;
+    
+    --lavender: #babbf1;
+    --blue: #8caaee;
+    --sapphire: #85c1dc;
+    --sky: #99d1db;
+    --teal: #81c8be;
+    --green: #a6d189;
+    --yellow: #e5c890;
+    --peach: #ef9f76;
+    --maroon: #ea999c;
+    --red: #e78284;
+    --mauve: #ca9ee6;
+    --pink: #f4b8e4;
+    --flamingo: #eebebe;
+    --rosewater: #f2d5cf;
+
+    --glass-bg: rgba(48, 52, 70, 0.75);
+    --glass-border: rgba(129, 200, 190, 0.1);
+}
+
+/* Catppuccin Macchiato (Dark) */
+body.theme-macchiato {
+    --base: #24273a;
+    --mantle: #1e2030;
+    --crust: #181926;
+    
+    --text: #cad3f5;
+    --subtext1: #b8c0e0;
+    --subtext0: #a5adcb;
+    
+    --overlay2: #939ab7;
+    --overlay1: #8087a2;
+    --overlay0: #6e738d;
+    
+    --surface2: #5b6078;
+    --surface1: #494d64;
+    --surface0: #363a4f;
+    
+    --lavender: #b7bdf8;
+    --blue: #8aadf4;
+    --sapphire: #7dc4e4;
+    --sky: #91d7e3;
+    --teal: #8bd5ca;
+    --green: #a6da95;
+    --yellow: #eed49f;
+    --peach: #f5a97f;
+    --maroon: #ee99a0;
+    --red: #ed8796;
+    --mauve: #c6a0f6;
+    --pink: #f5bde6;
+    --flamingo: #f0c6c6;
+    --rosewater: #f4dbd6;
+
+    --glass-bg: rgba(36, 39, 58, 0.75);
+    --glass-border: rgba(139, 213, 202, 0.1);
+}
+
+/* Explicit Mocha Class (for manual override) */
+body.theme-mocha {
+    --base: #1e1e2e;
+    --mantle: #181825;
+    --crust: #11111b;
+    --text: #cdd6f4;
+    --subtext1: #bac2de;
+    --subtext0: #a6adc8;
+    --glass-bg: rgba(30, 30, 46, 0.75);
+    --glass-border: rgba(148, 226, 213, 0.1);
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    background-color: var(--mantle);
+    background-color: var(--base);
     /* Subtle mesh gradient background */
     background-image: 
         radial-gradient(circle at 10% 20%, rgba(180, 190, 254, 0.05) 0%, transparent 20%),
@@ -106,6 +196,31 @@ body {
     display: flex;
     overflow: hidden;
     transition: background 0.3s, border-color 0.3s;
+}
+
+/* Light Theme Specific Overrides (Restoring previous look) */
+body.theme-latte .sidebar {
+    background-color: rgba(230, 233, 239, 0.6);
+}
+
+body.theme-latte .primary-btn { 
+    color: #fff; 
+} 
+
+body.theme-latte .code-pane {
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+}
+
+body.theme-latte .copy-btn:hover { 
+    color: #fff; 
+}
+
+body.theme-latte footer {
+    background-color: rgba(230, 233, 239, 0.4);
+}
+
+body.theme-latte .glass-toggle {
+    background: rgba(0, 0, 0, 0.05);
 }
 
 /* SIDEBAR */
@@ -387,7 +502,50 @@ body.light-theme .glass-toggle {
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 1rem;
 }
+.setting-item.column-layout {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
 .setting-item label { color: var(--subtext1); font-weight: 500; }
+
+/* Flat Theme Selector */
+.theme-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    width: 100%;
+}
+
+.theme-option {
+    background: var(--surface0);
+    border: 1px solid var(--surface1);
+    color: var(--subtext0);
+    padding: 10px 4px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.theme-option i { font-size: 1.2rem; }
+.theme-option span { font-size: 0.75rem; font-weight: 600; }
+
+.theme-option:hover {
+    background: var(--surface1);
+    color: var(--text);
+}
+
+.theme-option.active {
+    background: var(--surface1);
+    border-color: var(--lavender);
+    color: var(--lavender);
+    box-shadow: 0 0 10px rgba(180, 190, 254, 0.1);
+}
 
 .secondary-btn {
     background: var(--surface0);
@@ -414,4 +572,6 @@ body.light-theme .glass-toggle {
     textarea { min-height: 300px; }
     footer { flex-wrap: wrap; height: auto; padding: 10px; }
     .glass-toggle { margin-left: 0; }
+    
+    .theme-grid { grid-template-columns: repeat(3, 1fr); }
 }

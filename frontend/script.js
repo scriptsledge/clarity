@@ -293,25 +293,62 @@ if (settingsBtn && settingsModal && closeSettings) {
     });
 }
 
-// 7. Theme Toggle Logic
-if (themeToggle) {
-    let isLight = false;
-    themeToggle.addEventListener('click', () => {
-        isLight = !isLight;
-        document.body.classList.toggle('light-theme');
-        
-        const icon = themeToggle.querySelector('i');
-        const text = themeToggle.querySelector('span');
-        
-        if (isLight) {
-            icon.className = 'ph ph-sun';
-            text.textContent = 'Latte (Light)';
+// 7. Theme Management Logic
+const themeGrid = document.getElementById('themeGrid');
+const body = document.body;
+
+function updateActiveThemeButton(activeTheme) {
+    if (!themeGrid) return;
+    const buttons = themeGrid.querySelectorAll('.theme-option');
+    buttons.forEach(btn => {
+        if (btn.dataset.value === activeTheme) {
+            btn.classList.add('active');
         } else {
-            icon.className = 'ph ph-moon';
-            text.textContent = 'Mocha (Dark)';
+            btn.classList.remove('active');
         }
     });
 }
+
+function applyTheme(theme) {
+    // Remove all theme classes first
+    body.classList.remove('theme-latte', 'theme-frappe', 'theme-macchiato', 'theme-mocha');
+    
+    // Explicitly handle light mode class for system preference
+    if (theme === 'system') {
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (!isDark) {
+            body.classList.add('theme-latte');
+        }
+    } else {
+        body.classList.add(`theme-${theme}`);
+    }
+    
+    // Save preference and update UI
+    localStorage.setItem('clarity-theme', theme);
+    updateActiveThemeButton(theme);
+}
+
+// Initial Load
+const savedTheme = localStorage.getItem('clarity-theme') || 'system';
+applyTheme(savedTheme);
+
+// Button Listeners
+if (themeGrid) {
+    themeGrid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.theme-option');
+        if (btn) {
+            applyTheme(btn.dataset.value);
+        }
+    });
+}
+
+// Listen for System Changes (Real-time)
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    const current = localStorage.getItem('clarity-theme') || 'system';
+    if (current === 'system') {
+        applyTheme('system');
+    }
+});
 
 // Start
 initializeSystem();
