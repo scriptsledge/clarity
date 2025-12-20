@@ -1,12 +1,14 @@
-# Other Projects
+# 🚀 Minor Project 2025: Team Roster
 
-This document lists various projects being developed.
+> "A catalog of innovation."
+
+This document lists all projects developed by the cohort.
 
 ---
 
 ### 🧭 Navigation
-- **[Home](https://github.com/scriptsledge/clarity/blob/main/README.md)**
-- **[Detailed Roadmap](https://github.com/scriptsledge/clarity/blob/main/roadmap.md)**
+- **[⬅️ Back to Home](README.md)**
+- **[🗺️ Detailed Roadmap](roadmap.md)**
 
 ---
 
