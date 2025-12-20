@@ -88,12 +88,12 @@ The system is containerized and composed of a decoupled frontend and inference e
 ```mermaid
 %%{init: {'theme': 'dark', 'themeVariables': { 'darkMode': true, 'primaryColor': '#1e1e2e', 'edgeLabelBackground':'#181825', 'tertiaryColor': '#181825', 'mainBkg': '#1e1e2e', 'nodeBorder': '#b4befe', 'lineColor': '#cdd6f4'}}}%%
 graph LR
-    User[User] -->|Code Snippet| FE[Frontend (Nginx/HTML)];
-    FE -->|REST API| API[FastAPI Gateway];
-    API -->|Inference Request| Engine[llama.cpp Engine];
-    Engine -->|Corrected Code| API;
-    API -->|JSON Response| FE;
-    FE -->|Display| User;
+    User(User) -->|Code Snippet| FE["Frontend (Nginx/HTML)"]
+    FE -->|REST API| API["FastAPI Gateway"]
+    API -->|Inference Request| Engine["llama.cpp Engine"]
+    Engine -->|Corrected Code| API
+    API -->|JSON Response| FE
+    FE -->|Display| User
     
     style User fill:#fab387,stroke:#fab387,color:#1e1e2e
     style FE fill:#94e2d5,stroke:#94e2d5,color:#1e1e2e
