@@ -1,35 +1,55 @@
-# Use the official Python 3.10 slim image
-FROM python:3.10-slim
-
-# Set the working directory to /app
+# Stage 1: Builder
+FROM python:3.10-slim-bookworm AS builder
 WORKDIR /app
 
-# Copy the requirements file into the container at /app
-COPY requirements.txt .
-
-# Install system dependencies required for building llama-cpp-python
+# Install build tools
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
     && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install uv
+RUN pip install uv
 
-# Copy the current directory contents into the container at /app
+# Configure uv
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+
+# Copy requirements
+COPY requirements.txt .
+
+# Create venv and install dependencies
+# We allow building from source for llama-cpp-python to ensure libc compatibility
+RUN uv venv /app/.venv && \
+    uv pip install \
+    --no-cache \
+    -r requirements.txt \
+    --python /app/.venv
+
+# Stage 2: Final Runtime Image
+FROM python:3.10-slim-bookworm
+WORKDIR /app
+
+# Install runtime dependencies (OpenMP support for llama.cpp)
+RUN apt-get update && apt-get install -y \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the virtual environment from the builder stage
+COPY --from=builder /app/.venv /app/.venv
+
+# Set environment variables
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Copy the application code
 COPY . .
 
-# Create a non-root user and switch to it (required by Hugging Face Spaces)
+# Create a non-root user
 RUN useradd -m -u 1000 user
 USER user
-ENV HOME=/home/user \
-    PATH=/home/user/.local/bin:$PATH
+ENV HOME=/home/user
 
-# Expose port 7860 (Hugging Face Spaces default)
 EXPOSE 7860
-
-# Set context size for Hugging Face Spaces (Pure 16GB RAM)
 ENV MODEL_CTX_SIZE=8192
 
-# Run uvicorn when the container launches
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]

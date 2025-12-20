@@ -38,7 +38,7 @@ graph TD
 ```
 
 ### Core Systems
-1.  **Inference Engine (`backend/model_service.py`):** Uses `llama-cpp-python` to run **Qwen 2.5 Coder 7B (GGUF)** on CPU with 4-bit quantization.
+1.  **Inference Engine (`backend/model_service.py`):** Uses `llama-cpp-python` to run **Qwen 2.5 Coder 0.5B (GGUF)** on CPU with 4-bit quantization.
 2.  **Frontend (`frontend/`):** Zero-build vanilla HTML/JS with a custom Catppuccin Theme Engine.
 3.  **Discovery:** Auto-detects Local (`localhost:8000`), Docker (`7860`), or Cloud (`hf.space`) environments.
 

@@ -71,7 +71,7 @@
       <img src="https://img.shields.io/badge/Racket-3C5280?style=for-the-badge&logo=racket&logoColor=white" alt="Racket">
     </p>
 
-*   **Instant Feedback:** High-quality inference using the **Qwen 2.5 Coder 7B (GGUF)** model running on `llama.cpp`.
+*   **Instant Feedback:** High-quality inference using the **Qwen 2.5 Coder 0.5B (GGUF)** model running on `llama.cpp`.
 *   **Adaptive Theming:** Full **Catppuccin** support with 4 flavors:
     *   🌻 **Latte** (Light)
     *   🪴 **Frappé** (Soft Dark)
@@ -140,7 +140,7 @@ Serve the `frontend/` directory (e.g., `python -m http.server 3000`).
 | **Frontend** | HTML5 / CSS3 / JS | **Catppuccin** Themed UI with **Highlight.js** |
 | **API Gateway** | FastAPI | High-performance async Python framework |
 | **Inference** | llama-cpp-python | CPU-Optimized Inference (GGUF) |
-| **Model** | Qwen 2.5 Coder 7B | State-of-the-art Coding LLM (4-bit) |
+| **Model** | Qwen 2.5 Coder 0.5B | State-of-the-art Coding LLM (4-bit) |
 | **Serving** | Uvicorn / Nginx | Production-grade web servers |
 | **DevOps** | Docker Compose | Multi-container orchestration |
 

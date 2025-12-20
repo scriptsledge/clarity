@@ -75,6 +75,17 @@ We forced a transparent background in our global CSS to let the Catppuccin surfa
 code.hljs { background: transparent !important; }
 ```
 
+### 3. The "The Great Downsizing" (Latency vs. Intelligence)
+**Symptom:** The 7B model took 2-5 minutes to respond on Hugging Face's free CPU tier, causing 500/504 timeouts.
+**Root Cause:**
+Hugging Face's free tier provides only 2 vCPUs. A 7B model is mathematically too heavy for real-time CPU inference without dedicated hardware.
+**Solution:**
+We iteratively tested smaller versions of the Qwen 2.5 Coder family:
+1.  **3B Model:** Still took ~60s (borderline).
+2.  **1.5B Model:** Significantly faster (~15-20s).
+3.  **0.5B Model (Final Choice):** Instantaneous feel.
+We settled on the **0.5B model** with 4-bit quantization. Despite its tiny size, it maintains a high degree of accuracy for common coding bugs, providing the ultimate balance between speed and utility.
+
 ---
 
 ## 🏗️ The "Free Tier" Architecture Strategy

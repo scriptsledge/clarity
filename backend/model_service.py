@@ -3,10 +3,10 @@ from llama_cpp import Llama
 from huggingface_hub import hf_hub_download
 
 # --- Configuration ---
-# Using the 4-bit quantized version of Qwen 2.5 Coder 7B
-# This fits comfortably in 16GB RAM (~5-6GB usage) and is much faster on CPU
-REPO_ID = "Qwen/Qwen2.5-Coder-7B-Instruct-GGUF"
-FILENAME = "qwen2.5-coder-7b-instruct-q4_k_m.gguf"
+# Using the ultra-lightweight Qwen 2.5 Coder 0.5B
+# This is the fastest possible option for CPU/Edge devices.
+REPO_ID = "Qwen/Qwen2.5-Coder-0.5B-Instruct-GGUF"
+FILENAME = "qwen2.5-coder-0.5b-instruct-q4_k_m.gguf"
 
 print(f"Initializing Clarity AI Engine (llama.cpp)...")
 print(f"Target Model: {REPO_ID} [{FILENAME}]")
@@ -167,7 +167,7 @@ def correct_code_with_ai(code: str) -> dict:
         # llama-cpp-python chat completion
         response = llm.create_chat_completion(
             messages=messages,
-            max_tokens=2048,
+            max_tokens=1024, # Optimized for 1.5B speed
             temperature=0.1, # Lower temperature for stricter adherence
         )
         
