@@ -14,7 +14,7 @@ let API_BASE = ENDPOINTS[CURRENT_MODE];
 const correctBtn = document.getElementById('correctBtn');
 const codeInput = document.getElementById('codeInput');
 const codeOutput = document.getElementById('codeOutput');
-const copyBtn = document.querySelector('.copy-btn');
+const copyOutputBtn = document.getElementById('copyOutputBtn');
 const latencyStat = document.getElementById('latency');
 const statusDot = document.querySelector('.status-dot');
 const statusText = document.querySelector('.status-text');
@@ -206,58 +206,61 @@ if (correctBtn) {
 }
 
 // 4. Copy Logic
-if (copyBtn) {
-    copyBtn.addEventListener('click', async () => {
-        const text = codeOutput.textContent;
-        const icon = copyBtn.querySelector('i');
-        
-        // Helper to show status without destroying DOM
-        const showStatus = (type) => {
-            if (!icon) return; // Should not happen if HTML is correct
-            const originalClass = 'ph ph-copy';
-            
-            if (type === 'success') icon.className = 'ph ph-check';
-            else if (type === 'error') icon.className = 'ph ph-warning';
-            
-            setTimeout(() => icon.className = originalClass, 2000);
-        };
+const copyInputBtn = document.getElementById('copyInputBtn');
 
-        try {
-            // Priority 1: Modern Clipboard API
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(text);
-                showStatus('success');
-            } else {
-                throw new Error('Clipboard API unavailable');
-            }
-        } catch (err) {
-            // Priority 2: Fallback to execCommand
-            try {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                // Ensure textarea is not visible but part of DOM
-                textarea.style.position = 'fixed';
-                textarea.style.left = '-9999px';
-                textarea.style.top = '0';
-                document.body.appendChild(textarea);
-                textarea.focus();
-                textarea.select();
-                
-                const successful = document.execCommand('copy');
-                document.body.removeChild(textarea);
-                
-                if (successful) {
-                    showStatus('success');
-                } else {
-                    showStatus('error');
-                    console.error('Fallback copy failed.');
-                }
-            } catch (fallbackErr) {
-                console.error('All copy methods failed:', fallbackErr);
-                showStatus('error');
-            }
+async function handleCopy(text, btnElement) {
+    if (!text) return;
+    const icon = btnElement.querySelector('i');
+    
+    // Helper to show status without destroying DOM
+    const showStatus = (type) => {
+        if (!icon) return;
+        const originalClass = 'ph ph-copy';
+        
+        if (type === 'success') icon.className = 'ph ph-check';
+        else if (type === 'error') icon.className = 'ph ph-warning';
+        
+        setTimeout(() => icon.className = originalClass, 2000);
+    };
+
+    try {
+        // Priority 1: Modern Clipboard API
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+            showStatus('success');
+        } else {
+            throw new Error('Clipboard API unavailable');
         }
-    });
+    } catch (err) {
+        // Priority 2: Fallback to execCommand
+        try {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            textarea.style.top = '0';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            if (successful) showStatus('success');
+            else showStatus('error');
+        } catch (fallbackErr) {
+            console.error('Copy failed:', fallbackErr);
+            showStatus('error');
+        }
+    }
+}
+
+if (copyOutputBtn) {
+    copyOutputBtn.addEventListener('click', () => handleCopy(codeOutput.textContent, copyOutputBtn));
+}
+
+if (copyInputBtn) {
+    copyInputBtn.addEventListener('click', () => handleCopy(codeInput.value, copyInputBtn));
 }
 
 // 5. Tab Support
