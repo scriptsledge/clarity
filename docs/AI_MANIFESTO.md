@@ -50,5 +50,5 @@ A: Use Google Style Guide. Concise answers. No hallucinations about being Anthro
 ---
 
 ## 🔗 See Also
-*   [Troubleshooting](TROUBLESHOOTING.md) - How we prevent AI hallucinations.
-*   [Architecture](ARCHITECTURE.md) - The engine behind the persona.
+*   [Troubleshooting Log](..\JOURNEY.md#🛑-the-troubleshooting-log-war-stories) - How we prevent AI hallucinations.
+*   [System Architecture](..\DEVELOPMENT.md#🏗️-system-architecture) - The engine behind the persona.

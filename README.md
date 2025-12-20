@@ -22,24 +22,55 @@
 
 ## 📚 Documentation
 
-Dive deeper into how Clarity works and how you can contribute:
+**For Team & Evaluators:**
+*   **[📖 The Journey (Start Here)](JOURNEY.md):** The comprehensive story, team roster, timeline, and troubleshooting war stories.
+*   **[🎓 College Artifacts](docs/college/README.md):** Synopsis and Presentation slides.
 
+**For Students / Beginners:**
+*   **[🧠 Zero-to-Hero Concepts](docs/archive/LEARNING_RESOURCES.md):** What is Docker? What is an API? The core concepts explained simply.
+
+**For Developers:**
+*   **[🛠️ Developer Manual](DEVELOPMENT.md):** Architecture, Local Setup, and Deployment Guide.
 *   **[AI Manifesto](docs/AI_MANIFESTO.md):** Our core philosophy, identity, and operating rules.
-*   **[Architecture](docs/ARCHITECTURE.md):** System design and data flow.
-*   **[Local Development](docs/LOCAL_DEVELOPMENT.md):** Guide to running Clarity on your machine.
-*   **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md):** How to deploy to Hugging Face and Vercel.
-*   **[Git Concepts](docs/GIT_CONCEPTS.md):** Understanding our version control workflow.
-*   **[Team & Projects](projects.md):** Meet the creators (Minor Project Team).
 
 ## Features
 
 **Clarity** is an AI-powered code assistant designed to automatically detect bugs, suggest refactoring improvements, and enforce industry-standard naming conventions.
 
 ### ✨ Key Features
-*   **Multi-Language Support (20+):** Auto-detects and corrects major languages including:
-    *   `Python`, `C++`, `Java`, `JavaScript`, `TypeScript`, `Go`, `Rust`
-    *   `C#`, `C`, `Swift`, `Kotlin`, `Ruby`, `PHP`, `Dart`
-    *   `Scala`, `Elixir`, `Erlang`, `Racket`, `SQL`, `HTML/CSS`
+*   **Multi-Language Support (20+):** Auto-detects and corrects major languages:
+    <p>
+      <!-- Row 1: The Giants -->
+      <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+      <img src="https://img.shields.io/badge/C++-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white" alt="C++">
+      <img src="https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=java&logoColor=white" alt="Java">
+      <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JS">
+      <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TS">
+    </p>
+    <p>
+      <!-- Row 2: Systems & Modern -->
+      <img src="https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go">
+      <img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white" alt="Rust">
+      <img src="https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white" alt="C#">
+      <img src="https://img.shields.io/badge/C-A8B9CC?style=for-the-badge&logo=c&logoColor=black" alt="C">
+      <img src="https://img.shields.io/badge/Swift-F05138?style=for-the-badge&logo=swift&logoColor=white" alt="Swift">
+    </p>
+    <p>
+      <!-- Row 3: Web & Scripting -->
+      <img src="https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP">
+      <img src="https://img.shields.io/badge/Ruby-CC342D?style=for-the-badge&logo=ruby&logoColor=white" alt="Ruby">
+      <img src="https://img.shields.io/badge/Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin">
+      <img src="https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white" alt="Dart">
+      <img src="https://img.shields.io/badge/SQL-4479A1?style=for-the-badge&logo=postgresql&logoColor=white" alt="SQL">
+    </p>
+    <p>
+      <!-- Row 4: Functional & Others -->
+      <img src="https://img.shields.io/badge/Scala-DC322F?style=for-the-badge&logo=scala&logoColor=white" alt="Scala">
+      <img src="https://img.shields.io/badge/Elixir-4B275F?style=for-the-badge&logo=elixir&logoColor=white" alt="Elixir">
+      <img src="https://img.shields.io/badge/Erlang-A90533?style=for-the-badge&logo=erlang&logoColor=white" alt="Erlang">
+      <img src="https://img.shields.io/badge/Racket-3C5280?style=for-the-badge&logo=racket&logoColor=white" alt="Racket">
+    </p>
+
 *   **Instant Feedback:** High-quality inference using the **Qwen 2.5 Coder 7B (GGUF)** model running on `llama.cpp`.
 *   **Adaptive Theming:** Full **Catppuccin** support with 4 flavors:
     *   🌻 **Latte** (Light)
