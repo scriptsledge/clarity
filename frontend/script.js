@@ -9,6 +9,7 @@ const ENDPOINTS = {
 // State: 'LOCAL' | 'DOCKER' | 'CLOUD'
 let CURRENT_MODE = 'CLOUD'; 
 let API_BASE = ENDPOINTS[CURRENT_MODE];
+let isProcessing = false; // Track if an optimization is running
 
 // DOM Elements
 const correctBtn = document.getElementById('correctBtn');
@@ -87,9 +88,10 @@ function setSystemStatus(state, msg) {
     statusText.textContent = msg;
     
     // CRITICAL: Disable button if offline, enable otherwise
+    // BUT only if we are not currently processing a request
     if (state === 'offline') {
         correctBtn.disabled = true; 
-    } else {
+    } else if (!isProcessing) {
         correctBtn.disabled = false;
     }
 
@@ -151,6 +153,7 @@ if (correctBtn) {
         const code = codeInput.value;
         if (!code.trim()) return;
 
+        isProcessing = true; // Start lock
         const originalHtml = correctBtn.innerHTML;
         correctBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Processing...';
         correctBtn.disabled = true; // Disable while processing
@@ -195,6 +198,7 @@ if (correctBtn) {
             codeOutput.style.color = 'var(--red)';
             setSystemStatus('offline', "Connection Failed");
         } finally {
+            isProcessing = false; // Release lock
             correctBtn.innerHTML = originalHtml;
             // Only re-enable if current status is not offline (from health check)
             // If offline, keep disabled
