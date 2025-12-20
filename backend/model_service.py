@@ -1,33 +1,41 @@
 import os
-import torch
-from transformers import pipeline
+from llama_cpp import Llama
+from huggingface_hub import hf_hub_download
 
 # --- Configuration ---
-# Switching to 3B model for faster download and inference as requested
-MODEL_ID = "Qwen/Qwen2.5-Coder-3B-Instruct"
+# Using the 4-bit quantized version of Qwen 2.5 Coder 7B
+# This fits comfortably in 16GB RAM (~5-6GB usage) and is much faster on CPU
+REPO_ID = "Qwen/Qwen2.5-Coder-7B-Instruct-GGUF"
+FILENAME = "qwen2.5-coder-7b-instruct-q4_k_m.gguf"
 
-print(f"Initializing Clarity AI Engine (Transformers Pipeline)...")
-print(f"Target Model: {MODEL_ID}")
+print(f"Initializing Clarity AI Engine (llama.cpp)...")
+print(f"Target Model: {REPO_ID} [{FILENAME}]")
 
-# Optimize for speed: use float16 if GPU is available
-dtype = torch.float16 if torch.cuda.is_available() else "auto"
-
-pipe = None
+llm = None
 
 try:
-    print("Loading model pipeline...")
-    # Using the exact pattern you provided
-    pipe = pipeline(
-        "text-generation",
-        model=MODEL_ID,
-        device_map="auto",
-        torch_dtype=dtype
+    print("Downloading/Loading model...")
+    model_path = hf_hub_download(
+        repo_id=REPO_ID,
+        filename=FILENAME,
+        # This caches the model in ~/.cache/huggingface/hub
+    )
+    
+    # Initialize Llama
+    # Use environment variable to toggle context size (8192 for HF Spaces, 4096 for local)
+    ctx_size = int(os.getenv("MODEL_CTX_SIZE", "4096"))
+    llm = Llama(
+        model_path=model_path,
+        n_ctx=ctx_size, 
+        n_batch=512,
+        n_threads=os.cpu_count(),
+        verbose=False 
     )
     print("Success: Clarity AI Model loaded.")
 
 except Exception as e:
     print(f"CRITICAL ERROR: Failed to load model. {e}")
-    pipe = None
+    llm = None
 
 def detect_language(code: str) -> dict:
     """
@@ -46,55 +54,77 @@ def detect_language(code: str) -> dict:
 
 def correct_code_with_ai(code: str) -> dict:
     """
-    Takes a buggy code snippet and returns a corrected version using the Qwen model pipeline.
+    Takes a buggy code snippet and returns a corrected version using the Qwen model.
     """
     detected_lang = detect_language(code)
     
-    if not pipe:
+    if not llm:
         return {
             "code": "# Model failed to load. Check server logs.",
             "language": detected_lang
         }
 
+    # Stricter System Prompt with Educational Persona
     system_prompt = (
-        "You are 'Clarity', an intelligent code correction and refactoring engine. "
-        f"Your goal is to take buggy or suboptimal {detected_lang['name']} code and provide a clean, "
-        "production-ready version. \n\n"
-        "Tasks:\n"
-        "1. Fix all syntax and logical bugs.\n"
-        "2. Improve code structure and readability (refactoring).\n"
-        "3. Enforce industry-standard naming conventions.\n"
-        "4. Maintain the original intent and logic of the code.\n\n"
-        "Constraint: Return ONLY the corrected code. No explanations, no markdown backticks, no comments unless necessary for clarity."
+        "You are Clarity, an intelligent coding assistant designed for students and junior developers. "
+        "You were created by a team of college students (see projects.md) for a minor project to help peers write better code.\n\n"
+        "Your Mission:\n"
+        "1.  **Review & Fix:** Correct syntax and logical errors.\n"
+        "2.  **Educate:** Improve variable naming (use industry standards like Google Style Guide), readability, and structure.\n"
+        "3.  **Optimize:** Remove redundancy and improve logic.\n"
+        "4.  **Be Concise:** Provide objective, short, and high-value feedback. Avoid long lectures.\n\n"
+        "Guidelines:\n"
+        "-   **Style:** Follow the Google Style Guide for the respective language.\n"
+        "-   **Comments:** Add comments ONLY for complex logic or educational 'aha!' moments.\n"
+        "-   **Tone:** Concise, Objective, and Mentor-like.\n"
+        "-   **Identity:** You are 'Clarity'. If asked about your version, refer users to the GitHub repo. If asked non-code questions, answer only if factual and harmless; otherwise, politely decline.\n\n"
+        "Constraint: Return ONLY the corrected code with necessary educational comments inline. Do not output a separate explanation block unless absolutely necessary for a critical concept."
+    )
+
+    # One-shot example to force the pattern (Input -> Code Only)
+    example_input = "def sum(a,b): return a+b" if detected_lang["name"] == "Python" else "int sum(int a, int b) { return a+b; }"
+    example_output = (
+        "def sum(operand_a, operand_b):\n"
+        "    # Descriptive names improve readability\n"
+        "    return operand_a + operand_b"
+    ) if detected_lang["name"] == "Python" else (
+        "int sum(int operand_a, int operand_b) {\n"
+        "    // Descriptive names improve readability\n"
+        "    return operand_a + operand_b;\n"
+        "}"
     )
 
     messages = [
         {"role": "system", "content": system_prompt},
+        {"role": "user", "content": example_input},
+        {"role": "assistant", "content": example_output},
         {"role": "user", "content": code}
     ]
     
     try:
-        # Standard pipeline call
-        outputs = pipe(
-            messages,
-            max_new_tokens=1024,
-            return_full_text=False
+        # llama-cpp-python chat completion
+        response = llm.create_chat_completion(
+            messages=messages,
+            max_tokens=2048,
+            temperature=0.1, # Lower temperature for stricter adherence
         )
         
         # Extract content
-        generated_msg = outputs[0]["generated_text"]
-        
-        if isinstance(generated_msg, list):
-             response_content = generated_msg[-1]["content"]
-        else:
-             response_content = str(generated_msg)
+        response_content = response["choices"][0]["message"]["content"]
 
-        # Clean up
+        # Clean up (double check for markdown or chatty intros)
         cleaned_response = response_content.strip()
+        
+        # Aggressive stripping of "Here is the code..." or markdown
         if "```" in cleaned_response:
              lines = cleaned_response.split("\n")
-             if lines[0].startswith("```"): lines = lines[1:]
+             # Remove starting markdown
+             if lines[0].strip().startswith("```"): lines = lines[1:]
+             # Remove ending markdown
              if lines and lines[-1].strip().startswith("```"): lines = lines[:-1]
+             # Remove common chatty prefixes if they slipped through
+             if lines and (lines[0].lower().startswith("here is") or lines[0].lower().startswith("sure")):
+                 lines = lines[1:]
              cleaned_response = "\n".join(lines).strip()
 
         return {

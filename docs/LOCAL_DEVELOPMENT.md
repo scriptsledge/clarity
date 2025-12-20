@@ -59,3 +59,7 @@ The application has a built-in switch to connect to different backends.
 *   **🔴 Red (Offline):** Cannot reach the backend.
     *   *Check:* Is your Docker container running?
     *   *Check:* Did you select the correct mode? (e.g., Don't use "Local" if you are running Docker).
+
+## See Also
+*   [Architecture Guide](ARCHITECTURE.md) for system design.
+*   [AI Manifesto](AI_MANIFESTO.md) for understanding the model's behavior.

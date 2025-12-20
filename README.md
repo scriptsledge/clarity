@@ -20,6 +20,19 @@
 
 ## 🔮 Overview
 
+## 📚 Documentation
+
+Dive deeper into how Clarity works and how you can contribute:
+
+*   **[AI Manifesto](docs/AI_MANIFESTO.md):** Our core philosophy, identity, and operating rules.
+*   **[Architecture](docs/ARCHITECTURE.md):** System design and data flow.
+*   **[Local Development](docs/LOCAL_DEVELOPMENT.md):** Guide to running Clarity on your machine.
+*   **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md):** How to deploy to Hugging Face and Vercel.
+*   **[Git Concepts](docs/GIT_CONCEPTS.md):** Understanding our version control workflow.
+*   **[Team & Projects](projects.md):** Meet the creators (Minor Project Team).
+
+## Features
+
 **Clarity** is an AI-powered code assistant designed to automatically detect bugs, suggest refactoring improvements, and enforce industry-standard naming conventions.
 
 ### ✨ Key Features

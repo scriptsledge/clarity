@@ -7,6 +7,12 @@ WORKDIR /app
 # Copy the requirements file into the container at /app
 COPY requirements.txt .
 
+# Install system dependencies required for building llama-cpp-python
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -21,6 +27,9 @@ ENV HOME=/home/user \
 
 # Expose port 7860 (Hugging Face Spaces default)
 EXPOSE 7860
+
+# Set context size for Hugging Face Spaces (Pure 16GB RAM)
+ENV MODEL_CTX_SIZE=8192
 
 # Run uvicorn when the container launches
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
