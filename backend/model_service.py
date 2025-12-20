@@ -39,17 +39,67 @@ except Exception as e:
 
 def detect_language(code: str) -> dict:
     """
-    Simple heuristic to detect programming language.
+    Heuristic detection for LeetCode-supported languages.
     """
     code = code.strip()
-    if "#include" in code or "std::" in code or "int main()" in code:
+    
+    # C / C++
+    if "#include" in code or "using namespace std" in code or "std::" in code:
         return {"name": "C++", "ext": "cpp"}
-    if "public class" in code or "System.out.println" in code:
-        return {"name": "Java", "ext": "java"}
-    if "const " in code or "let " in code or "console.log" in code or "function" in code:
-        return {"name": "JavaScript", "ext": "js"}
-    if "def " in code or "import " in code or "print(" in code:
+    if "printf" in code and "#include <stdio.h>" in code:
+        return {"name": "C", "ext": "c"}
+        
+    # Java / C#
+    if "public class" in code:
+        if "System.out.println" in code or "public static void main" in code:
+            return {"name": "Java", "ext": "java"}
+        if "Console.WriteLine" in code or "namespace " in code or "using System" in code:
+            return {"name": "C#", "ext": "cs"}
+            
+    # Python
+    if "def " in code and ":" in code:
         return {"name": "Python", "ext": "py"}
+        
+    # JS / TS
+    if "console.log" in code or "const " in code or "let " in code or "function" in code:
+        if ": number" in code or ": string" in code or "interface " in code:
+            return {"name": "TypeScript", "ext": "ts"}
+        return {"name": "JavaScript", "ext": "js"}
+
+    # Go
+    if "package main" in code or "func main" in code or "fmt.Print" in code:
+        return {"name": "Go", "ext": "go"}
+
+    # Rust
+    if "fn " in code and ("let mut" in code or "println!" in code or "Vec<" in code):
+        return {"name": "Rust", "ext": "rs"}
+
+    # PHP
+    if "<?php" in code or "$" in code and "echo" in code:
+        return {"name": "PHP", "ext": "php"}
+
+    # Ruby
+    if "def " in code and "end" in code and "puts" in code:
+        return {"name": "Ruby", "ext": "rb"}
+        
+    # Swift
+    if "func " in code and ("var " in code or "let " in code) and "print(" in code:
+        if "->" in code: # Swift return type arrow
+            return {"name": "Swift", "ext": "swift"}
+            
+    # Kotlin
+    if "fun " in code and ("val " in code or "var " in code) and "println(" in code:
+        return {"name": "Kotlin", "ext": "kt"}
+        
+    # Dart
+    if "void main()" in code and "print(" in code and ";" in code:
+        return {"name": "Dart", "ext": "dart"}
+
+    # Racket / Lisp
+    if "(define" in code or "(lambda" in code:
+        return {"name": "Racket", "ext": "rkt"}
+
+    # Fallback
     return {"name": "Text", "ext": "txt"}
 
 def correct_code_with_ai(code: str) -> dict:
