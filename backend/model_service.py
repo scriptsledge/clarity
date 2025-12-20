@@ -95,8 +95,20 @@ def detect_language(code: str) -> dict:
     if "void main()" in code and "print(" in code and ";" in code:
         return {"name": "Dart", "ext": "dart"}
 
+    # Scala
+    if "object " in code or "def main" in code or "val " in code and "println" in code:
+        return {"name": "Scala", "ext": "scala"}
+
+    # Elixir
+    if "defmodule" in code or "defp" in code or "IO.puts" in code or ":ok" in code:
+        return {"name": "Elixir", "ext": "ex"}
+
+    # Erlang
+    if "-module" in code or "-export" in code or "io:format" in code:
+        return {"name": "Erlang", "ext": "erl"}
+
     # Racket / Lisp
-    if "(define" in code or "(lambda" in code:
+    if "(define" in code or "(lambda" in code or "#lang racket" in code:
         return {"name": "Racket", "ext": "rkt"}
 
     # Fallback
@@ -176,6 +188,9 @@ def correct_code_with_ai(code: str) -> dict:
              if lines and (lines[0].lower().startswith("here is") or lines[0].lower().startswith("sure")):
                  lines = lines[1:]
              cleaned_response = "\n".join(lines).strip()
+
+        # Run detection on the CLEAN, CORRECTED code for maximum accuracy
+        detected_lang = detect_language(cleaned_response)
 
         return {
             "code": cleaned_response,

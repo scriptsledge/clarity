@@ -147,6 +147,35 @@ if (backendToggle) {
     });
 }
 
+// Helper to map extension to HLJS class
+function getHljsClass(ext) {
+    const map = {
+        'py': 'python',
+        'js': 'javascript',
+        'ts': 'typescript',
+        'cs': 'csharp',
+        'cpp': 'cpp',
+        'c': 'c',
+        'java': 'java',
+        'go': 'go',
+        'rs': 'rust',
+        'rb': 'ruby',
+        'php': 'php',
+        'swift': 'swift',
+        'kt': 'kotlin',
+        'dart': 'dart',
+        'scala': 'scala',
+        'ex': 'elixir',
+        'erl': 'erlang',
+        'rkt': 'scheme', // Racket often uses Scheme lexer
+        'html': 'xml',
+        'css': 'css',
+        'sql': 'sql',
+        'sh': 'bash'
+    };
+    return map[ext] || ext;
+}
+
 // 3. Optimization Logic
 if (correctBtn) {
     correctBtn.addEventListener('click', async () => {
@@ -184,6 +213,17 @@ if (correctBtn) {
                 if (langStat) langStat.textContent = name;
                 if (inputTab) inputTab.innerHTML = `<i class="ph ph-file-code"></i> source.${ext}`;
                 if (outputTab) outputTab.innerHTML = `<i class="ph ph-sparkle"></i> optimized.${ext}`;
+                
+                // Syntax Highlighting
+                codeOutput.className = ''; // Wipe all classes
+                codeOutput.removeAttribute('data-highlighted'); // Reset HLJS state
+                
+                const hljsClass = getHljsClass(ext);
+                codeOutput.classList.add(`language-${hljsClass}`);
+                
+                if (window.hljs) {
+                    hljs.highlightElement(codeOutput);
+                }
             }
 
             const endTime = performance.now();
@@ -318,13 +358,26 @@ function applyTheme(theme) {
     body.classList.remove('theme-latte', 'theme-frappe', 'theme-macchiato', 'theme-mocha');
     
     // Explicitly handle light mode class for system preference
+    let isLightMode = false;
     if (theme === 'system') {
         const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (!isDark) {
             body.classList.add('theme-latte');
+            isLightMode = true;
         }
     } else {
         body.classList.add(`theme-${theme}`);
+        if (theme === 'latte') isLightMode = true;
+    }
+    
+    // Swap Highlight.js Theme
+    const hljsLink = document.getElementById('hljsTheme');
+    if (hljsLink) {
+        if (isLightMode) {
+            hljsLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css';
+        } else {
+            hljsLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/mocha.min.css';
+        }
     }
     
     // Save preference and update UI
