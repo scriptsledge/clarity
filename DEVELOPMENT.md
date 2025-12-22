@@ -22,23 +22,23 @@ graph TD
     subgraph Server [Backend Layer]
         API[FastAPI Gateway]
         Detect[Lang Detection]
-        Llama[llama.cpp Engine]
+        Engine[Transformers Engine]
     end
 
     UI -->|JSON HTTP| API
     API -->|Raw Code| Detect
-    API -->|Prompt| Llama
-    Llama -->|Tokens| API
+    API -->|Prompt| Engine
+    Engine -->|Tokens| API
     
     style Client fill:#313244,stroke:#89b4fa,color:#cdd6f4
     style Server fill:#313244,stroke:#a6e3a1,color:#cdd6f4
     style UI fill:#45475a,stroke:#b4befe
     style API fill:#45475a,stroke:#94e2d5
-    style Llama fill:#45475a,stroke:#f38ba8
+    style Engine fill:#45475a,stroke:#f38ba8
 ```
 
 ### Core Systems
-1.  **Inference Engine (`backend/model_service.py`):** Uses `llama-cpp-python` to run **Qwen 2.5 Coder 0.5B (GGUF)** on CPU with 4-bit quantization.
+1.  **Inference Engine (`backend/model_service.py`):** Uses **Hugging Face Transformers** to run **Qwen 2.5 Coder 0.5B** (Native PyTorch) with `accelerate` for optimization.
 2.  **Frontend (`frontend/`):** Zero-build vanilla HTML/JS with a custom Catppuccin Theme Engine.
 3.  **Discovery:** Auto-detects Local (`localhost:8000`), Docker (`7860`), or Cloud (`hf.space`) environments.
 
@@ -57,6 +57,8 @@ docker compose up --build
 *   **Backend:** Port 7860 (Internal)
 
 ### Option B: The Manual Way (Legacy)
+
+**Note:** This now requires installing PyTorch, which is a large download (~2GB+).
 
 **1. Start Backend:**
 ```bash

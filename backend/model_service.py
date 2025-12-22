@@ -1,41 +1,38 @@
 import os
-from llama_cpp import Llama
-from huggingface_hub import hf_hub_download
+from transformers import pipeline
+import torch
 
 # --- Configuration ---
-# Using the ultra-lightweight Qwen 2.5 Coder 0.5B
-# This is the fastest possible option for CPU/Edge devices.
-REPO_ID = "Qwen/Qwen2.5-Coder-0.5B-Instruct-GGUF"
-FILENAME = "qwen2.5-coder-0.5b-instruct-q4_k_m.gguf"
+# Using the standard Qwen 2.5 Coder 0.5B Instruct model (Native PyTorch)
+REPO_ID = "Qwen/Qwen2.5-Coder-0.5B-Instruct"
 
-print(f"Initializing Clarity AI Engine (llama.cpp)...")
-print(f"Target Model: {REPO_ID} [{FILENAME}]")
+print(f"Initializing Clarity AI Engine (Transformers)...")
+print(f"Target Model: {REPO_ID}")
 
-llm = None
+pipe = None
 
 try:
-    print("Downloading/Loading model...")
-    model_path = hf_hub_download(
-        repo_id=REPO_ID,
-        filename=FILENAME,
-        # This caches the model in ~/.cache/huggingface/hub
-    )
-    
-    # Initialize Llama
-    # Use environment variable to toggle context size (8192 for HF Spaces, 4096 for local)
-    ctx_size = int(os.getenv("MODEL_CTX_SIZE", "4096"))
-    llm = Llama(
-        model_path=model_path,
-        n_ctx=ctx_size, 
-        n_batch=512,
-        n_threads=os.cpu_count(),
-        verbose=False 
+    print("Loading model...")
+    # Initialize the pipeline
+    # device_map="auto" will use GPU if available, otherwise CPU.
+    # torch_dtype="auto" will use appropriate precision (fp16 on GPU, fp32 on CPU typically)
+    pipe = pipeline(
+        "text-generation",
+        model=REPO_ID,
+        torch_dtype="auto",
+        device_map="auto"
     )
     print("Success: Clarity AI Model loaded.")
+    
+    # Warm-up inference
+    print("Warming up model...")
+    warmup_msg = [{"role": "user", "content": "print('hello')"}]
+    pipe(warmup_msg, max_new_tokens=10)
+    print("Model warmup complete.")
 
 except Exception as e:
     print(f"CRITICAL ERROR: Failed to load model. {e}")
-    llm = None
+    pipe = None
 
 def detect_language(code: str) -> dict:
     """
@@ -120,7 +117,7 @@ def correct_code_with_ai(code: str) -> dict:
     """
     detected_lang = detect_language(code)
     
-    if not llm:
+    if not pipe:
         return {
             "code": "# Model failed to load. Check server logs.",
             "language": detected_lang
@@ -164,15 +161,18 @@ def correct_code_with_ai(code: str) -> dict:
     ]
     
     try:
-        # llama-cpp-python chat completion
-        response = llm.create_chat_completion(
-            messages=messages,
-            max_tokens=1024, # Optimized for 1.5B speed
+        # Transformers pipeline inference
+        outputs = pipe(
+            messages,
+            max_new_tokens=1024, # Optimized for 1.5B speed
             temperature=0.1, # Lower temperature for stricter adherence
+            do_sample=True, # Required for temperature usage
         )
         
         # Extract content
-        response_content = response["choices"][0]["message"]["content"]
+        # Pipeline with list of messages returns a list containing one dict, which contains 'generated_text'.
+        # 'generated_text' is the list of messages (history + new response).
+        response_content = outputs[0]["generated_text"][-1]["content"]
 
         # Clean up (double check for markdown or chatty intros)
         cleaned_response = response_content.strip()

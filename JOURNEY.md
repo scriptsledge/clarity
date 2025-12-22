@@ -49,6 +49,16 @@ This document serves as the **comprehensive history** of Clarity. It details the
 
 ---
 
+### Phase 4: The Cloud Optimization (Back to Basics)
+**Initial Goal:** Seamless deployment on Hugging Face Spaces.
+**The Problem:** While `llama.cpp` was perfect for our laptops, it felt "heavy" and slow to initialize in the cloud container. We suspected that Hugging Face's infrastructure was better optimized for their own library (`transformers`) than for our custom compiled C++ binaries.
+
+**The Pivot (Again):**
+*   **Decision:** We switched the backend *back* to the native **Transformers** library, using the PyTorch version of Qwen 2.5 Coder.
+*   **Outcome:** This allowed us to leverage `accelerate` and native PyTorch optimizations available in the Spaces environment, resulting in more consistent cold-start times and better integration with the platform.
+
+---
+
 ## 🛑 The Troubleshooting Log (War Stories)
 
 > "Mistakes are the portals of discovery."
@@ -85,6 +95,13 @@ We iteratively tested smaller versions of the Qwen 2.5 Coder family:
 2.  **1.5B Model:** Significantly faster (~15-20s).
 3.  **0.5B Model (Final Choice):** Instantaneous feel.
 We settled on the **0.5B model** with 4-bit quantization. Despite its tiny size, it maintains a high degree of accuracy for common coding bugs, providing the ultimate balance between speed and utility.
+
+### 4. The "Native vs Custom" Paradox (Optimization)
+**Symptom:** Our specialized `llama.cpp` container was performing worse on the Cloud than on our laptops.
+**Root Cause:**
+Hugging Face Spaces are optimized for standard PyTorch/Transformers workloads. Our custom binary approach was fighting against the grain of the infrastructure.
+**Solution:**
+We removed `llama-cpp-python` and switched to the standard `transformers` pipeline with the native PyTorch model. This aligned our stack with the platform's strengths, ensuring better stability and easier updates.
 
 ---
 

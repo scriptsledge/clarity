@@ -10,7 +10,7 @@
   <!-- Badges: Catppuccin Mocha Themed -->
   <p>
     <img src="https://img.shields.io/badge/FastAPI-Backend-b4befe?style=for-the-badge&logo=fastapi&logoColor=1e1e2e" alt="FastAPI">
-    <img src="https://img.shields.io/badge/llama.cpp-Inference-fab387?style=for-the-badge&logo=cplusplus&logoColor=1e1e2e" alt="llama.cpp">
+    <img src="https://img.shields.io/badge/HuggingFace-Transformers-fab387?style=for-the-badge&logo=huggingface&logoColor=1e1e2e" alt="Transformers">
     <img src="https://img.shields.io/badge/Docker-Containerized-a6e3a1?style=for-the-badge&logo=docker&logoColor=1e1e2e" alt="Docker">
     <img src="https://img.shields.io/badge/License-MIT-f38ba8?style=for-the-badge" alt="License">
   </p>
@@ -71,7 +71,7 @@
       <img src="https://img.shields.io/badge/Racket-3C5280?style=for-the-badge&logo=racket&logoColor=white" alt="Racket">
     </p>
 
-*   **Instant Feedback:** High-quality inference using the **Qwen 2.5 Coder 0.5B (GGUF)** model running on `llama.cpp`.
+*   **Instant Feedback:** Optimized inference using **Hugging Face Transformers** and **PyTorch**.
 *   **Adaptive Theming:** Full **Catppuccin** support with 4 flavors:
     *   🌻 **Latte** (Light)
     *   🪴 **Frappé** (Soft Dark)
@@ -90,7 +90,7 @@ The system is containerized and composed of a decoupled frontend and inference e
 graph LR
     User(User) -->|Code Snippet| FE["Frontend (Nginx/HTML)"]
     FE -->|REST API| API["FastAPI Gateway"]
-    API -->|Inference Request| Engine["llama.cpp Engine"]
+    API -->|Inference Request| Engine["Transformers Engine"]
     Engine -->|Corrected Code| API
     API -->|JSON Response| FE
     FE -->|Display| User
@@ -139,8 +139,8 @@ Serve the `frontend/` directory (e.g., `python -m http.server 3000`).
 | :--- | :--- | :--- |
 | **Frontend** | HTML5 / CSS3 / JS | **Catppuccin** Themed UI with **Highlight.js** |
 | **API Gateway** | FastAPI | High-performance async Python framework |
-| **Inference** | llama-cpp-python | CPU-Optimized Inference (GGUF) |
-| **Model** | Qwen 2.5 Coder 0.5B | State-of-the-art Coding LLM (4-bit) |
+| **Inference** | Transformers | Native PyTorch Inference Pipeline |
+| **Model** | Qwen 2.5 Coder 0.5B | State-of-the-art Coding LLM |
 | **Serving** | Uvicorn / Nginx | Production-grade web servers |
 | **DevOps** | Docker Compose | Multi-container orchestration |
 

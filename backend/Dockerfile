@@ -1,55 +1,33 @@
-# Stage 1: Builder
-FROM python:3.10-slim-bookworm AS builder
-WORKDIR /app
-
-# Install build tools
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install uv
-RUN pip install uv
-
-# Configure uv
-ENV UV_COMPILE_BYTECODE=1
-ENV UV_LINK_MODE=copy
-
-# Copy requirements
-COPY requirements.txt .
-
-# Create venv and install dependencies
-# We allow building from source for llama-cpp-python to ensure libc compatibility
-RUN uv venv /app/.venv && \
-    uv pip install \
-    --no-cache \
-    -r requirements.txt \
-    --python /app/.venv
-
-# Stage 2: Final Runtime Image
 FROM python:3.10-slim-bookworm
+
 WORKDIR /app
 
-# Install runtime dependencies (OpenMP support for llama.cpp)
+# Install runtime dependencies
+# libgomp1 is often needed by torch for CPU parallelism
 RUN apt-get update && apt-get install -y \
     libgomp1 \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the virtual environment from the builder stage
-COPY --from=builder /app/.venv /app/.venv
+# Install uv for fast package installation
+RUN pip install uv
 
-# Set environment variables
-ENV PATH="/app/.venv/bin:$PATH"
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN uv pip install --no-cache-dir --system -r requirements.txt
 
-# Copy the application code
+# Copy the rest of the application
 COPY . .
 
-# Create a non-root user
+# Create a non-root user (Hugging Face Spaces requirement)
 RUN useradd -m -u 1000 user
 USER user
 ENV HOME=/home/user
+ENV PATH="/home/user/.local/bin:$PATH"
 
+# Set environment variables
+# HF Spaces uses port 7860 by default
 EXPOSE 7860
-ENV MODEL_CTX_SIZE=8192
+ENV PYTHONUNBUFFERED=1
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
