@@ -302,6 +302,13 @@ if (correctBtn) {
             });
 
             if (!response.ok) {
+                // Handle 429 Quota Exceeded Gracefully
+                if (response.status === 429 || response.status === 503) {
+                    const errText = await response.text();
+                    if (errText.includes('quota') || errText.includes('exhausted') || errText.includes('429')) {
+                        throw new Error("QUOTA_EXHAUSTED");
+                    }
+                }
                 const errText = await response.text();
                 throw new Error(`API Error: ${response.status} - ${errText}`);
             }
@@ -331,9 +338,25 @@ if (correctBtn) {
 
         } catch (error) {
             console.error('[Clarity] API Error:', error);
-            codeOutput.textContent = `# Error: ${error.message}`;
-            codeOutput.style.color = 'var(--red)';
-            setSystemStatus('offline', "Connection Failed");
+
+            if (error.message === 'QUOTA_EXHAUSTED') {
+                codeOutput.innerHTML = `
+                 <div style="padding: 1rem; color: var(--text);">
+                    <h3 style="color: var(--peach); margin-bottom: 0.5rem;"><i class="ph ph-warning"></i> System Quota Exceeded</h3>
+                    <p style="margin-bottom: 1rem;">The free shared limit for Google Gemini has been reached for now.</p>
+                    <p style="margin-bottom: 1rem;"><b>Solution:</b> Use your own <span style="color: var(--green);">FREE</span> Google API Key to continue without limits.</p>
+                    <button onclick="document.getElementById('apiModal').classList.remove('hidden')" class="secondary-btn" style="width: fit-content;">
+                        <i class="ph ph-key"></i> Add Your API Key
+                    </button>
+                 </div>`;
+                codeOutput.textContent = ''; // Clear text content to let HTML render, but checking if innerHTML overrides (it does in JS)
+                // actually codeOutput is a <code> tag inside a <pre>. InnerHTML on code tag works.
+                setSystemStatus('offline', "Quota Exceeded");
+            } else {
+                codeOutput.textContent = `# Error: ${error.message}`;
+                codeOutput.style.color = 'var(--red)';
+                setSystemStatus('offline', "Connection Failed");
+            }
         } finally {
             isProcessing = false;
             codeOutput.parentElement.classList.remove('processing');
