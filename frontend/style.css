@@ -204,6 +204,8 @@ body {
     color: var(--text);
     font-family: var(--font-sans);
     height: 100vh;
+    height: 100dvh;
+    /* Dynamic Viewport Height for Mobile Browser Support */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -981,6 +983,7 @@ input[type=range]::-moz-range-thumb {
     .glass-wrapper {
         width: 100vw;
         height: 100vh;
+        height: 100dvh;
         border-radius: 0;
         border: none;
     }
