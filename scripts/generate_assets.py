@@ -1,5 +1,11 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
+from pathlib import Path
+
+# Target Directory (Relative to this script)
+# Script is in ./scripts/, so we go up one level to root, then to frontend/assets
+ASSETS_DIR = Path(__file__).parent.parent / "frontend" / "assets"
+ASSETS_DIR.mkdir(parents=True, exist_ok=True)
 
 def create_clarity_logo():
     # 1. Setup - 1024x1024 Canvas
@@ -60,11 +66,7 @@ def create_clarity_logo():
     draw.ellipse(core_bbox, fill=lavender)
     
     # 6. Save
-    # Ensure assets dir exists
-    assets_dir = os.path.join("frontend", "assets")
-    os.makedirs(assets_dir, exist_ok=True)
-    
-    output_path = os.path.join(assets_dir, "logo.png")
+    output_path = ASSETS_DIR / "logo.png"
     img.save(output_path, "PNG")
     print(f"Clarity Logo generated at {output_path}")
 
@@ -125,10 +127,7 @@ def create_overai_logo():
     draw.line(chevron_coords, fill=lavender, width=80, joint="curve")
     
     # 4. Save
-    assets_dir = os.path.join("frontend", "assets")
-    os.makedirs(assets_dir, exist_ok=True)
-    
-    output_path = os.path.join(assets_dir, "overai_logo.png")
+    output_path = ASSETS_DIR / "overai_logo.png"
     img.save(output_path, "PNG")
     print(f"OverAI Logo generated at {output_path}")
 
@@ -171,8 +170,7 @@ def create_overai_logo_bg():
     draw.line(chevron_coords, fill=lavender, width=80, joint="curve")
     
     # 4. Save
-    assets_dir = os.path.join("frontend", "assets")
-    output_path = os.path.join(assets_dir, "overai_logo_bg.png")
+    output_path = ASSETS_DIR / "overai_logo_bg.png"
     img.save(output_path, "PNG")
     print(f"OverAI Logo with background generated at {output_path}")
 
