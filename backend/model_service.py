@@ -12,28 +12,39 @@ print(f"Target Model: {REPO_ID}")
 
 pipe = None
 
-try:
-    print("Loading model...")
-    # Initialize the pipeline
-    # device_map="auto" will use GPU if available, otherwise CPU.
-    # torch_dtype="auto" will use appropriate precision (fp16 on GPU, fp32 on CPU typically)
-    pipe = pipeline(
-        "text-generation",
-        model=REPO_ID,
-        torch_dtype="auto",
-        device_map="auto"
-    )
-    print("Success: Clarity AI Model loaded.")
-    
-    # Warm-up inference
-    print("Warming up model...")
-    warmup_msg = [{"role": "user", "content": "print('hello')"}]
-    pipe(warmup_msg, max_new_tokens=10)
-    print("Model warmup complete.")
+def load_model():
+    """
+    Lazy-loads the model pipeline.
+    """
+    global pipe
+    if pipe is not None:
+        return pipe
 
-except Exception as e:
-    print(f"CRITICAL ERROR: Failed to load model. {e}")
-    pipe = None
+    print(f"Initializing Clarity AI Engine (Transformers)...")
+    print(f"Target Model: {REPO_ID}")
+
+    try:
+        print("Loading model...")
+        # Initialize the pipeline
+        pipe = pipeline(
+            "text-generation",
+            model=REPO_ID,
+            torch_dtype="auto",
+            device_map="auto"
+        )
+        print("Success: Clarity AI Model loaded.")
+        
+        # Warm-up inference
+        print("Warming up model...")
+        warmup_msg = [{"role": "user", "content": "print('hello')"}]
+        pipe(warmup_msg, max_new_tokens=10)
+        print("Model warmup complete.")
+
+    except Exception as e:
+        print(f"CRITICAL ERROR: Failed to load model. {e}")
+        pipe = None
+    
+    return pipe
 
 def detect_language(code: str) -> dict:
     """
@@ -118,7 +129,10 @@ def correct_code_with_ai(code: str) -> dict:
     """
     detected_lang = detect_language(code)
     
-    if not pipe:
+    # Lazy Load
+    current_pipe = load_model()
+    
+    if not current_pipe:
         return {
             "code": "# Model failed to load. Check server logs.",
             "language": detected_lang
@@ -298,7 +312,7 @@ def get_gemini_models(api_key: str = None) -> list:
     final_key = api_key if api_key else os.environ.get("GOOGLE_API_KEY")
     
     if not final_key:
-        return ["Error: No API Key"]
+        return []
 
     try:
         genai.configure(api_key=final_key)

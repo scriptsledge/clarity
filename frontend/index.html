@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,8 +11,10 @@
     <!-- Highlight.js (Core Only) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
+
 <body>
     <div class="glass-wrapper">
+        <div id="toastContainer" class="toast-container"></div>
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand">
@@ -30,8 +33,20 @@
         <main class="workspace">
             <header>
                 <div class="title-group">
-                    <h1>Refactor Engine</h1>
-                    <span class="badge">v2.0</span>
+                    <div class="mobile-brand">
+                        <div class="logo-small"></div>
+                        <span class="brand-text-mobile">Clarity</span>
+                    </div>
+                    <div class="desktop-title">
+                        <h1>Refactor Engine</h1>
+                        <span class="badge">v2.0</span>
+                    </div>
+                </div>
+                <!-- Mobile Actions (Settings/API) -->
+                <div class="mobile-actions">
+                    <button id="mobileApiBtn" class="icon-btn" title="API Configuration"><i
+                            class="ph ph-key"></i></button>
+                    <button id="mobileSettingsBtn" class="icon-btn" title="Settings"><i class="ph ph-gear"></i></button>
                 </div>
                 <div class="actions">
                     <button id="correctBtn" class="primary-btn">
@@ -81,7 +96,7 @@
                 <div class="stat-item">
                     <i class="ph ph-cpu"></i> <span id="latency">Latency: --ms</span>
                 </div>
-                
+
                 <!-- Backend Switcher -->
                 <div class="model-controls">
                     <!-- 1. Main Provider Toggle -->
@@ -173,7 +188,8 @@
                     <label>Google API Key <span class="badge-small">Optional</span></label>
                     <div class="input-group">
                         <i class="ph ph-key"></i>
-                        <input type="password" id="googleApiKey" placeholder="Paste your Gemini API Key here..." class="glass-input">
+                        <input type="password" id="googleApiKey" placeholder="Paste your Gemini API Key here..."
+                            class="glass-input">
                     </div>
                     <p class="help-text">Leave empty to use the built-in default key.</p>
                 </div>
@@ -187,4 +203,5 @@
     </div>
     <script src="script.js"></script>
 </body>
+
 </html>

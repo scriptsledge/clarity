@@ -62,3 +62,5 @@ Run the backend unit tests:
 cd backend
 python -m pytest
 ```
+
+_Note: Ensure `uv` packages are installed or your `venv` is active._

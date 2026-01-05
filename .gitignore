@@ -30,4 +30,10 @@ backend/models/
 node_modules/
 dist/
 npm-debug.log
-.env
+
+# Artifacts & Temporary
+*.log
+.DS_Store
+.vscode/
+.idea/
+

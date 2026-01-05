@@ -78,7 +78,11 @@
     *   🌺 **Macchiato** (Medium Dark)
     *   🌿 **Mocha** (Deep Dark)
     *   🖥️ **Auto-Switching** based on system preference.
-*   **Professional UI:** Glassmorphism design with real-time Syntax Highlighting (Highlight.js) and Font Size controls.
+*   **Hybrid AI Engine:**
+    *   **Local:** Qwen 2.5 Coder (Privacy-focused).
+    *   **Cloud:** Google Gemini 1.5/2.0 (High Performance) with **Dynamic Model Discovery**.
+*   **Professional UI:** Glassmorphism design with real-time Syntax Highlighting (Highlight.js).
+*   **Mobile Ready:** Fully responsive design with touch-optimized controls and mobile-specific branding.
 *   **Hybrid Deployment:** Run entirely locally (Docker) or connect to the Cloud backend out-of-the-box.
 
 ## 🏗️ Architecture
@@ -106,8 +110,9 @@ graph LR
 ### 1. Instant Demo (Cloud Mode)
 You don't need to install anything! The app defaults to **Cloud Mode**.
 1.  Clone the repo: `git clone ...`
-2.  Open `frontend/index.html` in your browser.
-3.  Start coding immediately.
+2.  Serve `frontend/` (e.g., `python -m http.server 3000`)
+3.  Open `http://localhost:3000` in your browser.
+4.  Start coding immediately.
 
 ### 2. Docker Compose (Local Privacy)
 Run the entire stack locally for zero-latency, private inference.
@@ -116,7 +121,7 @@ Run the entire stack locally for zero-latency, private inference.
 docker compose up --build
 ```
 *   **Frontend:** `http://localhost:80`
-*   **API Docs:** `http://localhost:8000/docs`
+*   **API Docs:** `http://localhost:7860/docs`
 
 *Switch the toggle in the footer to **Docker** to connect.*
 
@@ -125,12 +130,21 @@ docker compose up --build
 **Backend:**
 ```bash
 cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
+# Install dependencies (using uv for speed)
+pip install uv
+uv pip install --system -r requirements.txt
+
+# Run Server
+uvicorn main:app --reload --port 7860
 ```
 
 **Frontend:**
-Serve the `frontend/` directory (e.g., `python -m http.server 3000`).
+Serve the `frontend/` directory:
+```bash
+cd frontend
+python -m http.server 3000
+```
+Open `http://localhost:3000`.
 *Switch the toggle in the footer to **Local**.*
 
 ## 🛠️ Tech Stack

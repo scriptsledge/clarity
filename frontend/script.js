@@ -1,14 +1,15 @@
 // CONFIGURATION
 const isDev = window.location.port !== '' && window.location.port !== '80' && window.location.port !== '443';
 const ENDPOINTS = {
-    LOCAL: 'http://127.0.0.1:7860',  // Docker default port
-    DOCKER: isDev ? 'http://127.0.0.1:7860' : '', 
+    LOCAL: `${window.location.protocol}//${window.location.hostname}:7860`,
+    DOCKER: '', // Relative path for Docker/Nginx (same origin)
     CLOUD: 'https://scriptsledge-clarity-backend.hf.space'
 };
 
 // State
 let CURRENT_MODE = 'GOOGLE'; // Default
-let API_BASE = isDev ? ENDPOINTS.LOCAL : ENDPOINTS.CLOUD; 
+let API_BASE = isDev ? ENDPOINTS.LOCAL : ENDPOINTS.DOCKER;
+let isProcessing = false;
 
 // UI Elements
 const correctBtn = document.getElementById('correctBtn');
@@ -23,7 +24,7 @@ const statusText = document.querySelector('.status-text');
 const providerToggle = document.getElementById('providerToggle');
 const providerLabel = document.getElementById('providerLabel');
 const googleVersionWrapper = document.getElementById('googleVersionWrapper');
-const googleVersionSelect = document.getElementById('googleVersionSelect');
+// const googleVersionSelect = document.getElementById('googleVersionSelect'); // Removed
 
 // Settings
 const apiSettingsBtn = document.getElementById('apiSettingsBtn');
@@ -41,16 +42,72 @@ const inputTab = document.getElementById('inputTab');
 const outputTab = document.getElementById('outputTab');
 const langStat = document.getElementById('langStat');
 
+// Mobile Buttons
+const mobileApiBtn = document.getElementById('mobileApiBtn');
+const mobileSettingsBtn = document.getElementById('mobileSettingsBtn');
+
+if (mobileApiBtn && apiModal) {
+    mobileApiBtn.addEventListener('click', () => {
+        apiModal.classList.remove('hidden');
+        loadSettings();
+    });
+}
+
+if (mobileSettingsBtn && settingsModal) {
+    mobileSettingsBtn.addEventListener('click', () => {
+        settingsModal.classList.remove('hidden');
+        // Load settings values... (logic shared/duplicated or handled by existing)
+        const savedIn = localStorage.getItem('clarity-fs-in') || '14';
+        const savedOut = localStorage.getItem('clarity-fs-out') || '14';
+        if (inputFS) inputFS.value = savedIn;
+        if (outputFS) outputFS.value = savedOut;
+        if (inSizeVal) inSizeVal.textContent = savedIn + 'px';
+        if (outSizeVal) outSizeVal.textContent = savedOut + 'px';
+    });
+}
+
 function loadSettings() {
     const savedKey = localStorage.getItem('clarity-google-api-key');
     if (savedKey && googleApiKeyInput) googleApiKeyInput.value = savedKey;
+}
+
+// Toast Notification
+const toastContainer = document.getElementById('toastContainer');
+
+function showToast(message, type = 'info') {
+    if (!toastContainer) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    let icon = 'info';
+    if (type === 'success') icon = 'check-circle';
+    if (type === 'error') icon = 'warning-circle';
+    if (type === 'warning') icon = 'warning';
+
+    toast.innerHTML = `<i class="ph ph-${icon}"></i> <span>${message}</span>`;
+
+    toastContainer.appendChild(toast);
+
+    // Auto remove
+    setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s forwards';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+// File Protocol Warning
+if (window.location.protocol === 'file:') {
+    setTimeout(() => {
+        showToast("Browsers block 'file://' requests. Usage may be limited.", 'warning');
+    }, 1000);
 }
 
 if (saveApiBtn) {
     saveApiBtn.addEventListener('click', async () => {
         const key = googleApiKeyInput.value.trim();
         localStorage.setItem('clarity-google-api-key', key);
-        
+
         // Visual Feedback
         const originalHtml = saveApiBtn.innerHTML;
         saveApiBtn.innerHTML = '<i class="ph ph-circle-notch ph-spin"></i> Verifying...';
@@ -67,7 +124,7 @@ if (saveApiBtn) {
             saveApiBtn.innerHTML = '<i class="ph ph-check-circle"></i> Applied Successfully';
             saveApiBtn.style.background = 'var(--green)';
             saveApiBtn.style.color = 'var(--base)';
-            
+
             setTimeout(() => {
                 saveApiBtn.innerHTML = originalHtml;
                 saveApiBtn.style.background = '';
@@ -87,11 +144,13 @@ function cycleMode() {
     const currentIndex = MODES.indexOf(CURRENT_MODE);
     const nextIndex = (currentIndex + 1) % MODES.length;
     CURRENT_MODE = MODES[nextIndex];
-    
+
     // Update Endpoint Logic
     switch (CURRENT_MODE) {
         case 'GOOGLE':
-            API_BASE = isDev ? ENDPOINTS.LOCAL : ENDPOINTS.CLOUD;
+            // If in Dev, use Local Backend. If in Docker (Prod), use Relative Path (Docker). 
+            // Only use Cloud if explicitly in Cloud mode or if Local is unreachable (handled by health check fallback)
+            API_BASE = isDev ? ENDPOINTS.LOCAL : ENDPOINTS.DOCKER;
             break;
         case 'LOCAL':
             API_BASE = ENDPOINTS.LOCAL;
@@ -100,10 +159,15 @@ function cycleMode() {
             API_BASE = ENDPOINTS.CLOUD;
             break;
     }
-    
+
     updateModelUI();
-    setSystemStatus('offline', "Checking..."); 
+    setSystemStatus('offline', "Checking...");
     performHealthCheck();
+
+    // Initial Fetch for Google Models if active
+    if (CURRENT_MODE === 'GOOGLE') {
+        fetchGoogleModels();
+    }
 }
 
 function updateModelUI() {
@@ -113,22 +177,21 @@ function updateModelUI() {
     if (CURRENT_MODE === 'GOOGLE') {
         providerLabel.textContent = 'Google';
         providerToggle.innerHTML = '<i class="ph ph-google-logo"></i> <span>Google</span>';
-        
+
         // Show Sub-Menu
         if (googleVersionWrapper) {
             googleVersionWrapper.classList.remove('hidden');
-            // Trigger fetch (it has internal caching)
             fetchGoogleModels();
         }
     } else if (CURRENT_MODE === 'LOCAL') {
         providerLabel.textContent = 'Local (Qwen)';
         providerToggle.innerHTML = '<i class="ph ph-hard-drives"></i> <span>Local</span>';
-        
+
         if (googleVersionWrapper) googleVersionWrapper.classList.add('hidden');
     } else {
         providerLabel.textContent = 'Cloud (Qwen)';
         providerToggle.innerHTML = '<i class="ph ph-cloud"></i> <span>Cloud</span>';
-        
+
         if (googleVersionWrapper) googleVersionWrapper.classList.add('hidden');
     }
 }
@@ -144,16 +207,21 @@ async function performHealthCheck() {
         setSystemStatus('online', "System Online");
     } catch (e) {
         console.warn("Health check failed:", e);
-        setSystemStatus('offline', "Offline / Connecting...");
+        let msg = "Offline";
+        if (e.name === 'AbortError') msg = "Timeout (Waking up...)";
+        else if (e.message.includes('Failed to fetch')) msg = "Connection Refused (CORS?)";
+
+        setSystemStatus('offline', msg);
+        if (statusDot) statusDot.title = `Error: ${e.message}. If using file://, CORS blocks requests.`;
     }
 }
 
 async function checkHealth(baseUrl) {
     const controller = new AbortController();
     // Increase timeout to 15s to allow for HF Cold Start
-    const timeoutId = setTimeout(() => controller.abort(), 15000); 
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     let url = baseUrl === '' ? '/api/health' : `${baseUrl}/api/health`;
-    
+
     try {
         const response = await fetch(url, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -161,9 +229,9 @@ async function checkHealth(baseUrl) {
 
         // Cloud Exception
         if ((CURRENT_MODE === 'CLOUD' || (CURRENT_MODE === 'GOOGLE' && !isDev)) && (response.status === 404 || response.status === 405)) {
-            return true; 
+            return true;
         }
-        
+
         throw new Error(`HTTP Status ${response.status}`);
     } catch (e) {
         console.error("Health Check Details:", { mode: CURRENT_MODE, url: url, error: e });
@@ -172,10 +240,10 @@ async function checkHealth(baseUrl) {
 }
 
 function setSystemStatus(state, msg) {
-    if(!statusDot || !statusText) return;
+    if (!statusDot || !statusText) return;
     statusText.textContent = msg;
-    if (state === 'offline') correctBtn.disabled = true; 
-    else if (!isProcessing) correctBtn.disabled = false;
+    if (state === 'offline') correctBtn.disabled = true;
+    else if (typeof isProcessing !== 'undefined' && !isProcessing) correctBtn.disabled = false;
 
     if (state === 'online') {
         statusDot.style.backgroundColor = 'var(--green)';
@@ -199,12 +267,13 @@ if (correctBtn) {
         correctBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Processing...';
         correctBtn.disabled = true;
         codeOutput.style.opacity = '0.5';
-        
+
         const startTime = performance.now();
+        codeOutput.parentElement.classList.add('processing'); // Add shimmer effort
 
         try {
             const url = API_BASE === '' ? '/api/correct' : `${API_BASE}/api/correct`;
-            
+
             const payload = {
                 code: code,
                 model_provider: CURRENT_MODE === 'GOOGLE' ? 'google' : 'local'
@@ -213,19 +282,17 @@ if (correctBtn) {
             if (CURRENT_MODE === 'GOOGLE') {
                 const key = localStorage.getItem('clarity-google-api-key');
                 if (key) payload.api_key = key;
-                
+
                 // Add Google Model Selection
-                if (googleVersionSelect) {
-                    payload.google_model_name = googleVersionSelect.value;
-                }
+                payload.google_model_name = currentGoogleModelValue;
             }
-            
+
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
-            
+
             if (!response.ok) {
                 const errText = await response.text();
                 throw new Error(`API Error: ${response.status} - ${errText}`);
@@ -234,13 +301,13 @@ if (correctBtn) {
             const data = await response.json();
             codeOutput.style.opacity = '1';
             codeOutput.textContent = data.corrected_code;
-            
+
             if (data.language) {
                 const { name, ext } = data.language;
                 if (langStat) langStat.textContent = name;
                 if (inputTab) inputTab.innerHTML = `<i class="ph ph-file-code"></i> source.${ext}`;
                 if (outputTab) outputTab.innerHTML = `<i class="ph ph-sparkle"></i> optimized.${ext}`;
-                
+
                 codeOutput.className = '';
                 codeOutput.removeAttribute('data-highlighted');
                 const hljsClass = getHljsClass(ext);
@@ -251,7 +318,7 @@ if (correctBtn) {
             const endTime = performance.now();
             const lat = Math.round(endTime - startTime);
             if (latencyStat) latencyStat.textContent = `Latency: ${lat}ms`;
-            
+
             setSystemStatus('online', "System Online");
 
         } catch (error) {
@@ -261,6 +328,7 @@ if (correctBtn) {
             setSystemStatus('offline', "Connection Failed");
         } finally {
             isProcessing = false;
+            codeOutput.parentElement.classList.remove('processing');
             correctBtn.innerHTML = originalHtml;
             if (statusDot.style.backgroundColor !== 'var(--red)') correctBtn.disabled = false;
         }
@@ -289,7 +357,7 @@ if (copyOutputBtn) copyOutputBtn.addEventListener('click', () => handleCopy(code
 if (copyInputBtn) copyInputBtn.addEventListener('click', () => handleCopy(codeInput.value, copyInputBtn));
 
 // Tab
-if (codeInput) { codeInput.addEventListener('keydown', function(e) { if (e.key == 'Tab') { e.preventDefault(); this.value = this.value.substring(0, this.selectionStart) + "    " + this.value.substring(this.selectionEnd); this.selectionStart = this.selectionEnd = this.selectionStart + 4; }}); }
+if (codeInput) { codeInput.addEventListener('keydown', function (e) { if (e.key == 'Tab') { e.preventDefault(); this.value = this.value.substring(0, this.selectionStart) + "    " + this.value.substring(this.selectionEnd); this.selectionStart = this.selectionEnd = this.selectionStart + 4; } }); }
 
 // Modal Logic
 if (settingsBtn && settingsModal && closeSettings) {
@@ -313,8 +381,8 @@ function updateActiveThemeButton(activeTheme) {
 }
 function applyTheme(theme) {
     body.classList.remove('theme-latte', 'theme-frappe', 'theme-macchiato', 'theme-mocha');
-    if (theme === 'system') { 
-        if (!window.matchMedia('(prefers-color-scheme: dark)').matches) body.classList.add('theme-latte'); 
+    if (theme === 'system') {
+        if (!window.matchMedia('(prefers-color-scheme: dark)').matches) body.classList.add('theme-latte');
     } else {
         body.classList.add(`theme-${theme}`);
     }
@@ -332,26 +400,51 @@ function updateFont(target, size, labelEl, storageKey) { if (!target) return; ta
 if (inputFS && codeInput) { const savedIn = localStorage.getItem('clarity-fs-in') || '14'; inputFS.value = savedIn; updateFont(codeInput, savedIn, inVal, 'clarity-fs-in'); inputFS.addEventListener('input', (e) => updateFont(codeInput, e.target.value, inVal, 'clarity-fs-in')); }
 if (outputFS && codeOutput) { const savedOut = localStorage.getItem('clarity-fs-out') || '14'; outputFS.value = savedOut; updateFont(codeOutput, savedOut, outVal, 'clarity-fs-out'); outputFS.addEventListener('input', (e) => updateFont(codeOutput, e.target.value, outVal, 'clarity-fs-out')); }
 
-// --- Dynamic Model Fetching ---
+// --- Custom Dynamic Dropdown ---
 let cachedGoogleModels = null;
+let currentGoogleModelValue = 'gemini-flash-latest'; // Default
+
+// UI References
+const modelDropdownTrigger = document.getElementById('modelDropdownTrigger');
+const modelDropdownMenu = document.getElementById('modelDropdownMenu');
+const selectedModelText = document.getElementById('selectedModelText');
+
+// Toggle Menu
+if (modelDropdownTrigger) {
+    modelDropdownTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        modelDropdownMenu.classList.toggle('show');
+        modelDropdownTrigger.classList.toggle('active');
+    });
+}
+
+// Close on Outside Click
+document.addEventListener('click', (e) => {
+    if (modelDropdownMenu && modelDropdownMenu.classList.contains('show')) {
+        if (!modelDropdownTrigger.contains(e.target) && !modelDropdownMenu.contains(e.target)) {
+            modelDropdownMenu.classList.remove('show');
+            modelDropdownTrigger.classList.remove('active');
+        }
+    }
+});
 
 async function fetchGoogleModels() {
-    // Prevent re-fetching if we already have the list
+    // 1. Check Cache
     if (cachedGoogleModels) {
-        populateModelDropdown(cachedGoogleModels);
+        renderCustomOptions(cachedGoogleModels);
         return;
     }
 
-    if (!googleVersionSelect) return;
-    
-    // Show Loading State
-    googleVersionSelect.innerHTML = '<option>Loading models...</option>';
-    googleVersionSelect.disabled = true;
+    if (!selectedModelText) return;
+
+    // Show Loading
+    const prevText = selectedModelText.textContent;
+    selectedModelText.textContent = "Loading...";
+    modelDropdownTrigger.disabled = true;
 
     try {
         const url = API_BASE === '' ? '/api/models' : `${API_BASE}/api/models`;
-        
-        // Prepare Payload (Send API Key if user provided one)
+
         const payload = {};
         const key = localStorage.getItem('clarity-google-api-key');
         if (key) payload.api_key = key;
@@ -362,15 +455,14 @@ async function fetchGoogleModels() {
             body: JSON.stringify(payload)
         });
 
-        if (!response.ok) throw new Error("Failed to fetch models");
-        
+        if (!response.ok) throw new Error("Fetch failed");
+
         const data = await response.json();
-        
-        if (data.models && data.models.length > 0 && !data.models[0].includes("Error")) {
-            cachedGoogleModels = data.models; // Cache it
-            populateModelDropdown(data.models);
+
+        if (data.models && data.models.length > 0) {
+            cachedGoogleModels = data.models;
+            renderCustomOptions(data.models);
         } else {
-            // Fallback to defaults if API fails or returns error
             fallbackToDefaultModels();
         }
 
@@ -378,32 +470,78 @@ async function fetchGoogleModels() {
         console.warn("Model fetch failed, using defaults", e);
         fallbackToDefaultModels();
     } finally {
-        googleVersionSelect.disabled = false;
+        // Restore Text if failed, or update if success (handled by render)
+        if (!cachedGoogleModels) selectedModelText.textContent = "Flash Latest";
+        modelDropdownTrigger.disabled = false;
     }
 }
 
-function populateModelDropdown(models) {
-    if (!googleVersionSelect) return;
-    googleVersionSelect.innerHTML = ''; // Clear
-    
+function renderCustomOptions(models) {
+    if (!modelDropdownMenu) return;
+    modelDropdownMenu.innerHTML = ''; // Clear
+
     models.forEach(model => {
-        const option = document.createElement('option');
-        option.value = model;
-        // Format name nicely (e.g. gemini-1.5-flash -> Gemini 1.5 Flash)
-        option.textContent = model;
-        
-        // Auto-select the best one (Flash Latest)
-        if (model === 'gemini-flash-latest') option.selected = true;
-        
-        googleVersionSelect.appendChild(option);
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        if (model === currentGoogleModelValue) item.classList.add('selected');
+
+        // Format Name (e.g. gemini-1.5-flash -> Gemini 1.5 Flash)
+        // Simple heuristic: Capitalize and replace hyphens
+        const displayName = model
+            .replace('gemini-', 'Gemini ')
+            .replace('flash', 'Flash')
+            .replace('pro', 'Pro')
+            .replace('latest', 'Latest')
+            .replace(/-/g, ' ');
+
+        item.innerHTML = `<span>${displayName}</span> <i class="ph ph-check"></i>`;
+
+        item.addEventListener('click', () => {
+            selectModel(model, displayName);
+        });
+
+        modelDropdownMenu.appendChild(item);
+    });
+
+    // Ensure trigger text matches current if possible
+    if (models.includes(currentGoogleModelValue)) {
+        // trigger text update is redundant if we assume user usage, but good for data sync
+    }
+}
+
+function selectModel(value, displayName) {
+    currentGoogleModelValue = value;
+    if (selectedModelText) selectedModelText.textContent = displayName;
+
+    // Close Menu
+    modelDropdownMenu.classList.remove('show');
+    modelDropdownTrigger.classList.remove('active');
+
+    // Update Visual Selection class
+    const options = modelDropdownMenu.querySelectorAll('.dropdown-item');
+    options.forEach(opt => {
+        if (opt.textContent.includes(displayName)) opt.classList.add('selected');
+        else opt.classList.remove('selected');
     });
 }
 
 function fallbackToDefaultModels() {
-    if (!googleVersionSelect) return;
-    googleVersionSelect.innerHTML = `
-        <option value="gemini-flash-latest" selected>Flash Latest</option>
-        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-    `;
+    const defaults = ['gemini-flash-latest', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+    cachedGoogleModels = defaults;
+    renderCustomOptions(defaults);
 }
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
+    updateModelUI();
+
+    // Initial System Check
+    setSystemStatus('offline', "Initializing...");
+    performHealthCheck();
+
+    // Initial Fetch for Google Models if active
+    if (CURRENT_MODE === 'GOOGLE') {
+        fetchGoogleModels();
+    }
+});
