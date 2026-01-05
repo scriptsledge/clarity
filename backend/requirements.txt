@@ -2,4 +2,5 @@ fastapi
 uvicorn
 transformers
 torch
-accelerategoogle-generativeai
+accelerate
+google-generativeai
