@@ -11,6 +11,7 @@ const ENDPOINTS = {
 let CURRENT_MODE = 'GOOGLE'; // Default
 let API_BASE = (isDev) ? ENDPOINTS.LOCAL : (isVercel ? ENDPOINTS.CLOUD : ENDPOINTS.DOCKER);
 let isProcessing = false;
+let lastSuccessTime = 0;
 
 // UI Elements
 const correctBtn = document.getElementById('correctBtn');
@@ -308,14 +309,11 @@ if (correctBtn) {
             });
 
             if (!response.ok) {
-                // Handle 429 Quota Exceeded Gracefully
-                if (response.status === 429 || response.status === 503) {
-                    const errText = await response.text();
-                    if (errText.includes('quota') || errText.includes('exhausted') || errText.includes('429')) {
-                        throw new Error("QUOTA_EXHAUSTED");
-                    }
-                }
                 const errText = await response.text();
+                // Handle 429 Quota Exceeded Gracefully (and check for keyword in body even if status is 500)
+                if (response.status === 429 || response.status === 503 || errText.includes('quota') || errText.includes('exhausted')) {
+                    throw new Error("QUOTA_EXHAUSTED");
+                }
                 throw new Error(`API Error: ${response.status} - ${errText}`);
             }
 
