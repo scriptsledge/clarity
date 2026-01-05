@@ -296,3 +296,79 @@ const inVal = document.getElementById('inSizeVal'); const outVal = document.getE
 function updateFont(target, size, labelEl, storageKey) { if (!target) return; target.style.fontSize = `${size}px`; target.style.lineHeight = '1.6'; if (labelEl) labelEl.textContent = `${size}px`; localStorage.setItem(storageKey, size); }
 if (inputFS && codeInput) { const savedIn = localStorage.getItem('clarity-fs-in') || '14'; inputFS.value = savedIn; updateFont(codeInput, savedIn, inVal, 'clarity-fs-in'); inputFS.addEventListener('input', (e) => updateFont(codeInput, e.target.value, inVal, 'clarity-fs-in')); }
 if (outputFS && codeOutput) { const savedOut = localStorage.getItem('clarity-fs-out') || '14'; outputFS.value = savedOut; updateFont(codeOutput, savedOut, outVal, 'clarity-fs-out'); outputFS.addEventListener('input', (e) => updateFont(codeOutput, e.target.value, outVal, 'clarity-fs-out')); }
+
+// --- Dynamic Model Fetching ---
+let cachedGoogleModels = null;
+
+async function fetchGoogleModels() {
+    // Prevent re-fetching if we already have the list
+    if (cachedGoogleModels) {
+        populateModelDropdown(cachedGoogleModels);
+        return;
+    }
+
+    if (!googleVersionSelect) return;
+    
+    // Show Loading State
+    googleVersionSelect.innerHTML = '<option>Loading models...</option>';
+    googleVersionSelect.disabled = true;
+
+    try {
+        const url = API_BASE === '' ? '/api/models' : `${API_BASE}/api/models`;
+        
+        // Prepare Payload (Send API Key if user provided one)
+        const payload = {};
+        const key = localStorage.getItem('clarity-google-api-key');
+        if (key) payload.api_key = key;
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch models");
+        
+        const data = await response.json();
+        
+        if (data.models && data.models.length > 0 && !data.models[0].includes("Error")) {
+            cachedGoogleModels = data.models; // Cache it
+            populateModelDropdown(data.models);
+        } else {
+            // Fallback to defaults if API fails or returns error
+            fallbackToDefaultModels();
+        }
+
+    } catch (e) {
+        console.warn("Model fetch failed, using defaults", e);
+        fallbackToDefaultModels();
+    } finally {
+        googleVersionSelect.disabled = false;
+    }
+}
+
+function populateModelDropdown(models) {
+    if (!googleVersionSelect) return;
+    googleVersionSelect.innerHTML = ''; // Clear
+    
+    models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model;
+        // Format name nicely (e.g. gemini-1.5-flash -> Gemini 1.5 Flash)
+        option.textContent = model;
+        
+        // Auto-select the best one (Flash Latest)
+        if (model === 'gemini-flash-latest') option.selected = true;
+        
+        googleVersionSelect.appendChild(option);
+    });
+}
+
+function fallbackToDefaultModels() {
+    if (!googleVersionSelect) return;
+    googleVersionSelect.innerHTML = `
+        <option value="gemini-flash-latest" selected>Flash Latest</option>
+        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+    `;
+}

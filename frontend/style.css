@@ -829,3 +829,87 @@ body.theme-latte .glass-select {
     color: var(--overlay0);
     margin-top: 4px;
 }
+
+/* --- Advanced Model Controls --- */
+.model-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto; /* Push to right */
+    margin-right: 1rem;
+}
+
+/* 1. Main Provider Toggle Button */
+.glass-toggle-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--surface0);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    min-width: 100px;
+    justify-content: center;
+}
+
+.glass-toggle-btn:hover {
+    background: var(--surface0);
+    border-color: var(--lavender);
+    transform: translateY(-1px);
+}
+
+.glass-toggle-btn i {
+    color: var(--lavender);
+    font-size: 1rem;
+}
+
+/* 2. Google Version Selector */
+.version-select-wrapper {
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.version-select-wrapper.hidden {
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    overflow: hidden;
+    transform: translateX(-10px);
+}
+
+.glass-select-small {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--surface0);
+    color: var(--subtext0);
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-family: var(--font-sans);
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.glass-select-small:hover {
+    border-color: var(--lavender);
+    color: var(--text);
+}
+
+.glass-select-small option {
+    background: var(--mantle);
+    color: var(--text);
+    padding: 8px;
+}
+
+body.theme-latte .glass-toggle-btn,
+body.theme-latte .glass-select-small {
+    background: rgba(0, 0, 0, 0.05);
+}
