@@ -59,7 +59,7 @@ To build a web-based tool with a simple interface where a user can:
     *   In `frontend/script.js`, write the code to:
         *   Listen for a click on the button.
         *   Get the text from the input area.
-        *   Use `fetch` to `POST` the text to your local backend (`http://127.0.0.1:8000/api/correct`).
+        *   Use `fetch` to `POST` the text to your local backend (`http://127.0.0.1:7860/api/correct`).
         *   Display the response from the backend in the output area.
 3.  **Basic Styling:**
     *   In `frontend/style.css`, add some simple CSS to make the page usable and clean. Don't worry about making it perfect yet.
