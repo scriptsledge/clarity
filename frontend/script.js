@@ -1,5 +1,6 @@
 // CONFIGURATION
-const isDev = window.location.port !== '' && window.location.port !== '80' && window.location.port !== '443';
+const isVercel = window.location.hostname.includes('vercel.app');
+const isDev = !isVercel && window.location.port !== '' && window.location.port !== '80' && window.location.port !== '443';
 const ENDPOINTS = {
     LOCAL: `${window.location.protocol}//${window.location.hostname}:7860`,
     DOCKER: '', // Relative path for Docker/Nginx (same origin)
@@ -8,7 +9,7 @@ const ENDPOINTS = {
 
 // State
 let CURRENT_MODE = 'GOOGLE'; // Default
-let API_BASE = isDev ? ENDPOINTS.LOCAL : ENDPOINTS.DOCKER;
+let API_BASE = (isDev) ? ENDPOINTS.LOCAL : (isVercel ? ENDPOINTS.CLOUD : ENDPOINTS.DOCKER);
 let isProcessing = false;
 
 // UI Elements
@@ -148,9 +149,16 @@ function cycleMode() {
     // Update Endpoint Logic
     switch (CURRENT_MODE) {
         case 'GOOGLE':
-            // If in Dev, use Local Backend. If in Docker (Prod), use Relative Path (Docker). 
-            // Only use Cloud if explicitly in Cloud mode or if Local is unreachable (handled by health check fallback)
-            API_BASE = isDev ? ENDPOINTS.LOCAL : ENDPOINTS.DOCKER;
+            // 1. Dev -> Local Backend
+            // 2. Vercel -> Cloud Backend (Cross-Origin to HF Spaces)
+            // 3. Docker/Nginx -> Relative Path (Same Origin)
+            if (isDev) {
+                API_BASE = ENDPOINTS.LOCAL;
+            } else if (isVercel) {
+                API_BASE = ENDPOINTS.CLOUD;
+            } else {
+                API_BASE = ENDPOINTS.DOCKER;
+            }
             break;
         case 'LOCAL':
             API_BASE = ENDPOINTS.LOCAL;
