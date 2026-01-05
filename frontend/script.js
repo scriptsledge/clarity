@@ -53,7 +53,15 @@ function loadSettings() {
     if (savedKey && googleApiKeyInput) googleApiKeyInput.value = savedKey;
     if (googleApiKeyInput) {
         googleApiKeyInput.addEventListener('input', (e) => {
-            localStorage.setItem('clarity-google-api-key', e.target.value.trim());
+            const key = e.target.value.trim();
+            localStorage.setItem('clarity-google-api-key', key);
+            
+            // Clear cache and re-fetch if we are in Google mode
+            cachedGoogleModels = null;
+            if (CURRENT_MODE === 'GOOGLE') {
+                fetchGoogleModels();
+                performHealthCheck();
+            }
         });
     }
 }
