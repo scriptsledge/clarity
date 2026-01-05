@@ -492,6 +492,17 @@ code.hljs {
     color: var(--text);
 }
 
+/* Enable text wrapping for non-code text */
+code.language-text,
+code.language-txt,
+code.language-md,
+code.language-markdown,
+code.language-log,
+code.language-plaintext {
+    white-space: pre-wrap !important;
+    word-wrap: break-word;
+}
+
 /* Catppuccin Syntax Highlighting - Adhering to Style Guide */
 .hljs-keyword,
 .hljs-selector-tag,
