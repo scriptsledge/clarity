@@ -214,6 +214,12 @@ async function performHealthCheck() {
         await checkHealth(API_BASE);
         setSystemStatus('online', "System Online");
     } catch (e) {
+        // Fix Race Condition: If we recently had a success (e.g. user manually triggered optimize), ignore this background failure
+        if (Date.now() - lastSuccessTime < 60000) {
+            console.log("Ignoring health check failure due to recent success.");
+            return;
+        }
+
         console.warn("Health check failed:", e);
         let msg = "Offline";
         if (e.name === 'AbortError') msg = "Timeout (Waking up...)";
@@ -335,6 +341,7 @@ if (correctBtn) {
             if (latencyStat) latencyStat.textContent = `Latency: ${lat}ms`;
 
             setSystemStatus('online', "System Online");
+            lastSuccessTime = Date.now();
 
         } catch (error) {
             console.error('[Clarity] API Error:', error);
@@ -342,8 +349,8 @@ if (correctBtn) {
             if (error.message === 'QUOTA_EXHAUSTED') {
                 codeOutput.innerHTML = `
                  <div style="padding: 1rem; color: var(--text);">
-                    <h3 style="color: var(--peach); margin-bottom: 0.5rem;"><i class="ph ph-warning"></i> System Quota Exceeded</h3>
-                    <p style="margin-bottom: 1rem;">The free shared limit for Google Gemini has been reached for now.</p>
+                    <h3 style="color: var(--peach); margin-bottom: 0.5rem;"><i class="ph ph-warning"></i> High Traffic / Quota Exceeded</h3>
+                    <p style="margin-bottom: 1rem;">The system is experiencing high traffic or the shared quota is exhausted.</p>
                     <p style="margin-bottom: 1rem;"><b>Solution:</b> Use your own <span style="color: var(--green);">FREE</span> Google API Key to continue without limits.</p>
                     <button onclick="document.getElementById('apiModal').classList.remove('hidden')" class="secondary-btn" style="width: fit-content;">
                         <i class="ph ph-key"></i> Add Your API Key
