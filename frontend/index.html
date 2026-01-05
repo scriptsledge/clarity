@@ -21,6 +21,7 @@
             <nav>
                 <a href="#" class="active" title="Editor"><i class="ph ph-code"></i></a>
                 <a href="#" id="settingsBtn" title="Settings"><i class="ph ph-gear"></i></a>
+                <a href="#" id="apiSettingsBtn" title="API Configuration"><i class="ph ph-key"></i></a>
             </nav>
             <div class="status-dot" title="System Status"></div>
         </aside>
@@ -82,10 +83,14 @@
                 </div>
                 
                 <!-- Backend Switcher -->
-                <button id="backendToggle" class="glass-toggle" title="Switch Backend">
-                    <i class="ph ph-cloud mode-icon"></i> 
-                    <span class="mode-text">Cloud</span>
-                </button>
+                <div class="model-selector-wrapper">
+                    <i class="ph ph-cpu"></i>
+                    <select id="modelSelector" class="glass-select" title="Select Model">
+                        <option value="GOOGLE">Google (Gemini 1.5)</option>
+                        <option value="LOCAL">Local (Qwen 0.5B)</option>
+                        <option value="CLOUD">Cloud (HuggingFace)</option>
+                    </select>
+                </div>
 
                 <div class="stat-item right">
                     <span class="status-text">Connecting...</span>
@@ -141,6 +146,27 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Modal -->
+    <div id="apiModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>API Configuration</h2>
+                <button id="closeApiSettings" class="close-btn"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- API Key Section -->
+                <div class="setting-item column-layout">
+                    <label>Google API Key <span class="badge-small">Optional</span></label>
+                    <div class="input-group">
+                        <i class="ph ph-key"></i>
+                        <input type="password" id="googleApiKey" placeholder="Paste your Gemini API Key here..." class="glass-input">
+                    </div>
+                    <p class="help-text">Leave empty to use the built-in default key.</p>
                 </div>
             </div>
         </div>

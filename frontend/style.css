@@ -705,3 +705,127 @@ input[type=range]::-moz-range-thumb {
     
     .theme-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* Glass Input & Select */
+.glass-input, .glass-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--surface0);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: var(--font-sans);
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+body.theme-latte .glass-input, 
+body.theme-latte .glass-select {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.glass-input:focus, .glass-select:focus {
+    border-color: var(--lavender);
+    background: var(--surface0);
+}
+
+.glass-select option {
+    background-color: var(--mantle);
+    color: var(--text);
+    padding: 10px;
+}
+
+/* Model Selector Wrapper */
+.model-selector-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--surface0);
+    padding: 4px 10px;
+    border-radius: 12px;
+    margin-left: auto;
+    margin-right: 1rem;
+    transition: all 0.2s;
+}
+
+.model-selector-wrapper:hover {
+    border-color: var(--lavender);
+    background: var(--surface0);
+}
+
+.model-selector-wrapper i {
+    color: var(--lavender);
+    font-size: 1.1rem;
+}
+
+.model-selector-wrapper select {
+    background-color: transparent;
+    border: none;
+    padding: 4px 0;
+    color: var(--subtext0);
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    width: auto;
+    appearance: none; /* Remove default arrow for cleaner look */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    /* Re-add custom arrow or just let user click the text/icon */
+    padding-right: 1rem; /* Space for hidden arrow if any */
+}
+
+/* Fix for Firefox/Chrome Dropdown Background */
+.model-selector-wrapper select option {
+    background-color: var(--mantle);
+    color: var(--text);
+}
+
+.model-selector-wrapper select:focus {
+    background-color: transparent;
+    outline: none;
+}
+
+/* Input Group with Icon */
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: var(--surface0);
+    border: 1px solid var(--surface1);
+    border-radius: 8px;
+    padding: 0 10px;
+}
+
+.input-group i {
+    color: var(--subtext0);
+    font-size: 1.1rem;
+}
+
+.input-group .glass-input {
+    border: none;
+    background: transparent;
+    padding-left: 0;
+}
+
+.input-group:focus-within {
+    border-color: var(--lavender);
+}
+
+.badge-small {
+    background: var(--surface1);
+    color: var(--subtext0);
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.help-text {
+    font-size: 0.8rem;
+    color: var(--overlay0);
+    margin-top: 4px;
+}

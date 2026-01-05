@@ -6,10 +6,10 @@ const ENDPOINTS = {
     CLOUD: 'https://scriptsledge-clarity-backend.hf.space'
 };
 
-// State: 'LOCAL' | 'DOCKER' | 'CLOUD'
-let CURRENT_MODE = 'CLOUD'; 
-let API_BASE = ENDPOINTS[CURRENT_MODE];
-let isProcessing = false; // Track if an optimization is running
+// State
+let CURRENT_MODE = 'GOOGLE'; // Default to Google for Hackathon
+let API_BASE = ENDPOINTS.LOCAL; // Default to Local backend for Google features
+let isProcessing = false;
 
 // DOM Elements
 const correctBtn = document.getElementById('correctBtn');
@@ -19,7 +19,8 @@ const copyOutputBtn = document.getElementById('copyOutputBtn');
 const latencyStat = document.getElementById('latency');
 const statusDot = document.querySelector('.status-dot');
 const statusText = document.querySelector('.status-text');
-const backendToggle = document.getElementById('backendToggle');
+const modelSelector = document.getElementById('modelSelector'); // New Dropdown
+const googleApiKeyInput = document.getElementById('googleApiKey'); // New Input
 
 // Language UI Elements
 const inputTab = document.getElementById('inputTab');
@@ -35,17 +36,36 @@ const themeToggle = document.getElementById('themeToggle');
 // 1. Initialization
 async function initializeSystem() {
     console.log('[Clarity] Initializing...');
-    updateToggleUI(); 
+    
+    // Load Settings
+    loadSettings();
+    
+    // Initialize Mode
+    handleModeChange();
     
     // Initial check
     await performHealthCheck();
+}
+
+function loadSettings() {
+    // API Key
+    const savedKey = localStorage.getItem('clarity-google-api-key');
+    if (savedKey && googleApiKeyInput) {
+        googleApiKeyInput.value = savedKey;
+    }
+    
+    // Listen for Key Changes
+    if (googleApiKeyInput) {
+        googleApiKeyInput.addEventListener('input', (e) => {
+            localStorage.setItem('clarity-google-api-key', e.target.value.trim());
+        });
+    }
 }
 
 // Re-usable check function
 async function performHealthCheck() {
     try {
         await checkHealth(API_BASE);
-        // If checkHealth resolves, we are good
         setSystemStatus('online', "System Online");
     } catch (e) {
         console.warn("Health check failed:", e);
@@ -62,23 +82,17 @@ async function checkHealth(baseUrl) {
         const response = await fetch(url, { signal: controller.signal });
         clearTimeout(timeoutId);
         
-        // INTELLIGENT STATUS CHECK
-        // 1. If 200 OK -> Always Good.
         if (response.ok) return true;
 
-        // 2. Cloud Exception: HF Spaces often return 404/405 on root or specific paths
-        // but the connection is actually alive.
+        // Cloud Exception for HF Spaces
         if (CURRENT_MODE === 'CLOUD' && (response.status === 404 || response.status === 405)) {
             return true; 
         }
-
-        // 3. Otherwise (e.g., Docker/Local): 404/405 are actual failures for the health check endpoint.
-        // So for Docker/Local, 404 is a FAILURE.
         
         throw new Error(`HTTP Status ${response.status}`);
 
     } catch (e) {
-        throw e; // Network errors will throw here
+        throw e;
     }
 }
 
@@ -87,8 +101,6 @@ function setSystemStatus(state, msg) {
 
     statusText.textContent = msg;
     
-    // CRITICAL: Disable button if offline, enable otherwise
-    // BUT only if we are not currently processing a request
     if (state === 'offline') {
         correctBtn.disabled = true; 
     } else if (!isProcessing) {
@@ -99,79 +111,51 @@ function setSystemStatus(state, msg) {
         statusDot.style.backgroundColor = 'var(--green)';
         statusDot.style.boxShadow = '0 0 8px var(--green)';
         statusText.style.color = 'var(--green)';
-    } else { // State is 'offline'
+    } else {
         statusDot.style.backgroundColor = 'var(--red)';
         statusDot.style.boxShadow = 'none';
         statusText.style.color = 'var(--red)';
     }
 }
 
-function updateToggleUI() {
-    if (!backendToggle) return;
-    const modeText = backendToggle.querySelector('.mode-text');
-    const modeIcon = backendToggle.querySelector('span.mode-icon');
+// 2. Mode Switching Logic
+function handleModeChange() {
+    if (!modelSelector) return;
+    
+    CURRENT_MODE = modelSelector.value;
     
     switch (CURRENT_MODE) {
-        case 'LOCAL':
-            modeText.textContent = 'Local';
-            if(modeIcon) modeIcon.textContent = '💻';
+        case 'GOOGLE':
+            // Google needs the updated backend, which is running locally/docker
+            API_BASE = isDev ? ENDPOINTS.LOCAL : ''; 
             break;
-        case 'DOCKER':
-            modeText.textContent = 'Docker';
-            if(modeIcon) modeIcon.textContent = '🐳';
+        case 'LOCAL':
+            API_BASE = isDev ? ENDPOINTS.LOCAL : '';
             break;
         case 'CLOUD':
-            modeText.textContent = 'Cloud';
-            if(modeIcon) modeIcon.textContent = '☁️';
+            API_BASE = ENDPOINTS.CLOUD;
             break;
     }
+    
+    console.log(`[Clarity] Switched to ${CURRENT_MODE} (Target: ${API_BASE || 'Relative'})`);
+    
+    // Trigger check
+    setSystemStatus('offline', "Checking..."); 
+    performHealthCheck();
 }
 
-// 2. Toggle Logic
-if (backendToggle) {
-    backendToggle.addEventListener('click', async () => {
-        if (CURRENT_MODE === 'LOCAL') {
-            CURRENT_MODE = 'DOCKER';
-        } else if (CURRENT_MODE === 'DOCKER') {
-            CURRENT_MODE = 'CLOUD';
-        } else {
-            CURRENT_MODE = 'LOCAL';
-        }
-        
-        API_BASE = ENDPOINTS[CURRENT_MODE];
-        updateToggleUI();
-        
-        // Show checking state
-        setSystemStatus('offline', "Checking..."); 
-        await performHealthCheck();
-    });
+if (modelSelector) {
+    modelSelector.addEventListener('change', handleModeChange);
 }
 
 // Helper to map extension to HLJS class
 function getHljsClass(ext) {
     const map = {
-        'py': 'python',
-        'js': 'javascript',
-        'ts': 'typescript',
-        'cs': 'csharp',
-        'cpp': 'cpp',
-        'c': 'c',
-        'java': 'java',
-        'go': 'go',
-        'rs': 'rust',
-        'rb': 'ruby',
-        'php': 'php',
-        'swift': 'swift',
-        'kt': 'kotlin',
-        'dart': 'dart',
-        'scala': 'scala',
-        'ex': 'elixir',
-        'erl': 'erlang',
-        'rkt': 'scheme', // Racket often uses Scheme lexer
-        'html': 'xml',
-        'css': 'css',
-        'sql': 'sql',
-        'sh': 'bash'
+        'py': 'python', 'js': 'javascript', 'ts': 'typescript', 'cs': 'csharp',
+        'cpp': 'cpp', 'c': 'c', 'java': 'java', 'go': 'go', 'rs': 'rust',
+        'rb': 'ruby', 'php': 'php', 'swift': 'swift', 'kt': 'kotlin',
+        'dart': 'dart', 'scala': 'scala', 'ex': 'elixir', 'erl': 'erlang',
+        'rkt': 'scheme', 'html': 'xml', 'css': 'css', 'sql': 'sql', 'sh': 'bash'
     };
     return map[ext] || ext;
 }
@@ -182,10 +166,10 @@ if (correctBtn) {
         const code = codeInput.value;
         if (!code.trim()) return;
 
-        isProcessing = true; // Start lock
+        isProcessing = true;
         const originalHtml = correctBtn.innerHTML;
         correctBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Processing...';
-        correctBtn.disabled = true; // Disable while processing
+        correctBtn.disabled = true;
         codeOutput.style.opacity = '0.5';
         
         const startTime = performance.now();
@@ -193,37 +177,46 @@ if (correctBtn) {
         try {
             const url = API_BASE === '' ? '/api/correct' : `${API_BASE}/api/correct`;
             
+            // Prepare Payload
+            const payload = {
+                code: code,
+                model_provider: CURRENT_MODE === 'GOOGLE' ? 'google' : 'local'
+            };
+
+            // Add API Key if in Google Mode
+            if (CURRENT_MODE === 'GOOGLE') {
+                const key = localStorage.getItem('clarity-google-api-key');
+                if (key) payload.api_key = key;
+            }
+            
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: code }),
+                body: JSON.stringify(payload),
             });
             
             if (!response.ok) {
-                throw new Error(`API Error: ${response.status}`);
+                const errText = await response.text();
+                throw new Error(`API Error: ${response.status} - ${errText}`);
             }
 
             const data = await response.json();
             codeOutput.style.opacity = '1';
             codeOutput.textContent = data.corrected_code;
             
-            // Auto-update Language UI if data exists
             if (data.language) {
                 const { name, ext } = data.language;
                 if (langStat) langStat.textContent = name;
                 if (inputTab) inputTab.innerHTML = `<i class="ph ph-file-code"></i> source.${ext}`;
                 if (outputTab) outputTab.innerHTML = `<i class="ph ph-sparkle"></i> optimized.${ext}`;
                 
-                // Syntax Highlighting
-                codeOutput.className = ''; // Wipe all classes
-                codeOutput.removeAttribute('data-highlighted'); // Reset HLJS state
+                codeOutput.className = '';
+                codeOutput.removeAttribute('data-highlighted');
                 
                 const hljsClass = getHljsClass(ext);
                 codeOutput.classList.add(`language-${hljsClass}`);
                 
-                if (window.hljs) {
-                    hljs.highlightElement(codeOutput);
-                }
+                if (window.hljs) hljs.highlightElement(codeOutput);
             }
 
             const endTime = performance.now();
@@ -238,10 +231,8 @@ if (correctBtn) {
             codeOutput.style.color = 'var(--red)';
             setSystemStatus('offline', "Connection Failed");
         } finally {
-            isProcessing = false; // Release lock
+            isProcessing = false;
             correctBtn.innerHTML = originalHtml;
-            // Only re-enable if current status is not offline (from health check)
-            // If offline, keep disabled
             if (statusDot.style.backgroundColor !== 'var(--red)') {
                  correctBtn.disabled = false;
             }
@@ -251,24 +242,18 @@ if (correctBtn) {
 
 // 4. Copy Logic
 const copyInputBtn = document.getElementById('copyInputBtn');
-
 async function handleCopy(text, btnElement) {
     if (!text) return;
     const icon = btnElement.querySelector('i');
-    
-    // Helper to show status without destroying DOM
     const showStatus = (type) => {
         if (!icon) return;
         const originalClass = 'ph ph-copy';
-        
         if (type === 'success') icon.className = 'ph ph-check';
         else if (type === 'error') icon.className = 'ph ph-warning';
-        
         setTimeout(() => icon.className = originalClass, 2000);
     };
 
     try {
-        // Priority 1: Modern Clipboard API
         if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(text);
             showStatus('success');
@@ -276,36 +261,13 @@ async function handleCopy(text, btnElement) {
             throw new Error('Clipboard API unavailable');
         }
     } catch (err) {
-        // Priority 2: Fallback to execCommand
-        try {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.left = '-9999px';
-            textarea.style.top = '0';
-            document.body.appendChild(textarea);
-            textarea.focus();
-            textarea.select();
-            
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textarea);
-            
-            if (successful) showStatus('success');
-            else showStatus('error');
-        } catch (fallbackErr) {
-            console.error('Copy failed:', fallbackErr);
-            showStatus('error');
-        }
+        console.error('Copy failed:', err);
+        showStatus('error');
     }
 }
 
-if (copyOutputBtn) {
-    copyOutputBtn.addEventListener('click', () => handleCopy(codeOutput.textContent, copyOutputBtn));
-}
-
-if (copyInputBtn) {
-    copyInputBtn.addEventListener('click', () => handleCopy(codeInput.value, copyInputBtn));
-}
+if (copyOutputBtn) copyOutputBtn.addEventListener('click', () => handleCopy(codeOutput.textContent, copyOutputBtn));
+if (copyInputBtn) copyInputBtn.addEventListener('click', () => handleCopy(codeInput.value, copyInputBtn));
 
 // 5. Tab Support
 if (codeInput) {
@@ -319,6 +281,10 @@ if (codeInput) {
 }
 
 // 6. Settings Logic
+const apiSettingsBtn = document.getElementById('apiSettingsBtn');
+const apiModal = document.getElementById('apiModal');
+const closeApiSettings = document.getElementById('closeApiSettings');
+
 if (settingsBtn && settingsModal && closeSettings) {
     settingsBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -329,7 +295,6 @@ if (settingsBtn && settingsModal && closeSettings) {
         settingsModal.classList.add('hidden');
     });
 
-    // Close on click outside
     settingsModal.addEventListener('click', (e) => {
         if (e.target === settingsModal) {
             settingsModal.classList.add('hidden');
@@ -337,10 +302,26 @@ if (settingsBtn && settingsModal && closeSettings) {
     });
 }
 
-// 7. Theme Management Logic
+if (apiSettingsBtn && apiModal && closeApiSettings) {
+    apiSettingsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        apiModal.classList.remove('hidden');
+    });
+
+    closeApiSettings.addEventListener('click', () => {
+        apiModal.classList.add('hidden');
+    });
+
+    apiModal.addEventListener('click', (e) => {
+        if (e.target === apiModal) {
+            apiModal.classList.add('hidden');
+        }
+    });
+}
+
+// 7. Theme Management
 const themeGrid = document.getElementById('themeGrid');
 const body = document.body;
-
 function updateActiveThemeButton(activeTheme) {
     if (!themeGrid) return;
     const buttons = themeGrid.querySelectorAll('.theme-option');
@@ -354,49 +335,28 @@ function updateActiveThemeButton(activeTheme) {
 }
 
 function applyTheme(theme) {
-    // Remove all theme classes first
     body.classList.remove('theme-latte', 'theme-frappe', 'theme-macchiato', 'theme-mocha');
-    
-    // Explicitly handle light mode class for system preference
-    let isLightMode = false;
     if (theme === 'system') {
         const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (!isDark) {
-            body.classList.add('theme-latte');
-            isLightMode = true;
-        }
+        if (!isDark) body.classList.add('theme-latte');
     } else {
         body.classList.add(`theme-${theme}`);
     }
-    
-    // Save preference and update UI
     localStorage.setItem('clarity-theme', theme);
     updateActiveThemeButton(theme);
 }
 
-// Initial Load
 const savedTheme = localStorage.getItem('clarity-theme') || 'system';
 applyTheme(savedTheme);
 
-// Button Listeners
 if (themeGrid) {
     themeGrid.addEventListener('click', (e) => {
         const btn = e.target.closest('.theme-option');
-        if (btn) {
-            applyTheme(btn.dataset.value);
-        }
+        if (btn) applyTheme(btn.dataset.value);
     });
 }
 
-// Listen for System Changes (Real-time)
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    const current = localStorage.getItem('clarity-theme') || 'system';
-    if (current === 'system') {
-        applyTheme('system');
-    }
-});
-
-// 8. Font Size Logic
+// 8. Font Size
 const inputFS = document.getElementById('inputFontSize');
 const outputFS = document.getElementById('outputFontSize');
 const inVal = document.getElementById('inSizeVal');
@@ -405,41 +365,25 @@ const outVal = document.getElementById('outSizeVal');
 function updateFont(target, size, labelEl, storageKey) {
     if (!target) return;
     target.style.fontSize = `${size}px`;
-    // Update line-height to maintain readability
     target.style.lineHeight = '1.6'; 
     if (labelEl) labelEl.textContent = `${size}px`;
     localStorage.setItem(storageKey, size);
 }
 
 if (inputFS && codeInput) {
-    // Load saved
     const savedIn = localStorage.getItem('clarity-fs-in') || '14';
     inputFS.value = savedIn;
     updateFont(codeInput, savedIn, inVal, 'clarity-fs-in');
-
-    inputFS.addEventListener('input', (e) => {
-        updateFont(codeInput, e.target.value, inVal, 'clarity-fs-in');
-    });
+    inputFS.addEventListener('input', (e) => updateFont(codeInput, e.target.value, inVal, 'clarity-fs-in'));
 }
 
 if (outputFS && codeOutput) {
-    // Load saved
     const savedOut = localStorage.getItem('clarity-fs-out') || '14';
     outputFS.value = savedOut;
-    // Apply to parent PRE as well for HLJS inheritance
-    const pre = codeOutput.parentElement;
-    if (pre) pre.style.fontSize = `${savedOut}px`;
-    
     updateFont(codeOutput, savedOut, outVal, 'clarity-fs-out');
-
-    outputFS.addEventListener('input', (e) => {
-        const size = e.target.value;
-        if (pre) pre.style.fontSize = `${size}px`;
-        updateFont(codeOutput, size, outVal, 'clarity-fs-out');
-    });
+    outputFS.addEventListener('input', (e) => updateFont(codeOutput, e.target.value, outVal, 'clarity-fs-out'));
 }
 
 // Start
 initializeSystem();
-// Auto-Check every 30s
 setInterval(performHealthCheck, 30000);

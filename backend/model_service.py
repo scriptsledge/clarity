@@ -1,6 +1,7 @@
 import os
 from transformers import pipeline
 import torch
+import google.generativeai as genai
 
 # --- Configuration ---
 # Using the standard Qwen 2.5 Coder 0.5B Instruct model (Native PyTorch)
@@ -201,5 +202,87 @@ def correct_code_with_ai(code: str) -> dict:
         print(f"Inference Error: {e}")
         return {
             "code": f"# An error occurred during processing: {str(e)}",
+            "language": detected_lang
+        }
+
+def correct_code_with_gemini(code: str, api_key: str = None) -> dict:
+    """
+    Uses Google's Gemini 1.5 Flash model for code correction.
+    """
+    detected_lang = detect_language(code)
+    
+    # 1. Resolve API Key
+    final_key = api_key if api_key else os.environ.get("GOOGLE_API_KEY")
+    
+    if not final_key:
+        return {
+            "code": "# Error: No Google API Key provided. Please add it in Settings.",
+            "language": detected_lang
+        }
+
+    try:
+        genai.configure(api_key=final_key)
+        
+        # Stricter System Prompt (Same as Local)
+        system_prompt = (
+            "You are Clarity, an intelligent coding assistant designed for students and junior developers. "
+            "You were created by a team of college students (see projects.md) for a minor project to help peers write better code.\n\n"
+            "Your Mission:\n"
+            "1.  **Review & Fix:** Correct syntax and logical errors.\n"
+            "2.  **Educate:** Improve variable naming (use industry standards like Google Style Guide), readability, and structure.\n"
+            "3.  **Optimize:** Remove redundancy and improve logic.\n"
+            "4.  **Be Concise:** Provide objective, short, and high-value feedback. Avoid long lectures.\n\n"
+            "Guidelines:\n"
+            "-   **Style:** Follow the Google Style Guide for the respective language.\n"
+            "-   **Comments:** Add comments ONLY for complex logic or educational 'aha!' moments.\n"
+            "-   **Tone:** Concise, Objective, and Mentor-like.\n"
+            "-   **Identity:** You are 'Clarity'. If asked about your version, refer users to the GitHub repo. If asked non-code questions, answer only if factual and harmless; otherwise, politely decline.\n\n"
+            "Constraint: Return ONLY the corrected code with necessary educational comments inline. Do not output a separate explanation block unless absolutely necessary for a critical concept."
+        )
+
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash",
+            system_instruction=system_prompt
+        )
+
+        # One-shot example
+        example_input = "def sum(a,b): return a+b" if detected_lang["name"] == "Python" else "int sum(int a, int b) { return a+b; }"
+        example_output = (
+            "def sum(operand_a, operand_b):\n"
+            "    # Descriptive names improve readability\n"
+            "    return operand_a + operand_b"
+        ) if detected_lang["name"] == "Python" else (
+            "int sum(int operand_a, int operand_b) {\n"
+            "    // Descriptive names improve readability\n"
+            "    return operand_a + operand_b;\n"
+            "}"
+        )
+        
+        # Start chat with history
+        chat = model.start_chat(history=[
+            {"role": "user", "parts": [example_input]},
+            {"role": "model", "parts": [example_output]},
+        ])
+
+        response = chat.send_message(code)
+        
+        cleaned_response = response.text.strip()
+        
+        # Cleanup markdown
+        if "```" in cleaned_response:
+             lines = cleaned_response.split("\n")
+             if lines[0].strip().startswith("```"): lines = lines[1:]
+             if lines and lines[-1].strip().startswith("```"): lines = lines[:-1]
+             cleaned_response = "\n".join(lines).strip()
+             
+        return {
+            "code": cleaned_response,
+            "language": detect_language(cleaned_response)
+        }
+
+    except Exception as e:
+        print(f"Gemini Inference Error: {e}")
+        return {
+            "code": f"# Gemini Error: {str(e)}",
             "language": detected_lang
         }

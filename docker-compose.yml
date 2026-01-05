@@ -4,6 +4,10 @@ services:
     container_name: clarity-backend
     ports:
       - "7860:7860"
+    env_file:
+      - .env
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
 
   frontend:
     build: ./frontend
