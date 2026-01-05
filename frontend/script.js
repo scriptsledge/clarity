@@ -135,7 +135,12 @@ async function checkHealth(baseUrl) {
         const response = await fetch(url, { signal: controller.signal });
         clearTimeout(timeoutId);
         if (response.ok) return true;
-        if (CURRENT_MODE === 'CLOUD' && (response.status === 404 || response.status === 405)) return true; 
+
+        // Cloud Exception for HF Spaces (Applies to both Cloud and Google modes using Cloud Backend)
+        if ((CURRENT_MODE === 'CLOUD' || (CURRENT_MODE === 'GOOGLE' && !isDev)) && (response.status === 404 || response.status === 405)) {
+            return true; 
+        }
+        
         throw new Error(`HTTP Status ${response.status}`);
     } catch (e) { throw e; }
 }
@@ -236,8 +241,7 @@ if (correctBtn) {
     });
 }
 
-// 5. Utilities (Copy, Tab, Theme, Fonts) - Minimized for brevity as they are unchanged logic
-// ... (Keeping existing Copy/Tab/Theme logic identical to before)
+// 5. Utilities (Copy, Tab, Theme, Fonts) - Minimized for brevity
 function getHljsClass(ext) {
     const map = { 'py': 'python', 'js': 'javascript', 'ts': 'typescript', 'cs': 'csharp', 'cpp': 'cpp', 'c': 'c', 'java': 'java', 'go': 'go', 'rs': 'rust', 'rb': 'ruby', 'php': 'php', 'swift': 'swift', 'kt': 'kotlin', 'dart': 'dart', 'scala': 'scala', 'ex': 'elixir', 'erl': 'erlang', 'rkt': 'scheme', 'html': 'xml', 'css': 'css', 'sql': 'sql', 'sh': 'bash' };
     return map[ext] || ext;
@@ -275,6 +279,7 @@ if (apiSettingsBtn && apiModal && closeApiSettings) {
 
 // Theme
 const themeGrid = document.getElementById('themeGrid');
+const body = document.body;
 function updateActiveThemeButton(activeTheme) {
     if (!themeGrid) return;
     const buttons = themeGrid.querySelectorAll('.theme-option');
@@ -282,7 +287,11 @@ function updateActiveThemeButton(activeTheme) {
 }
 function applyTheme(theme) {
     body.classList.remove('theme-latte', 'theme-frappe', 'theme-macchiato', 'theme-mocha');
-    if (theme === 'system') { if (!window.matchMedia('(prefers-color-scheme: dark)').matches) body.classList.add('theme-latte'); } else body.classList.add(`theme-${theme}`);
+    if (theme === 'system') { 
+        if (!window.matchMedia('(prefers-color-scheme: dark)').matches) body.classList.add('theme-latte'); 
+    } else {
+        body.classList.add(`theme-${theme}`);
+    }
     localStorage.setItem('clarity-theme', theme);
     updateActiveThemeButton(theme);
 }
