@@ -126,18 +126,20 @@ function handleModeChange() {
     
     switch (CURRENT_MODE) {
         case 'GOOGLE':
-            // Google needs the updated backend, which is running locally/docker
-            API_BASE = isDev ? ENDPOINTS.LOCAL : ''; 
+            // Google needs the updated backend. In Prod, this is the Cloud Backend.
+            // In Dev, it's the local backend.
+            API_BASE = isDev ? ENDPOINTS.LOCAL : ENDPOINTS.CLOUD; 
             break;
         case 'LOCAL':
-            API_BASE = isDev ? ENDPOINTS.LOCAL : '';
+            // Local implies localhost even in Prod (if user has it running)
+            API_BASE = ENDPOINTS.LOCAL;
             break;
         case 'CLOUD':
             API_BASE = ENDPOINTS.CLOUD;
             break;
     }
     
-    console.log(`[Clarity] Switched to ${CURRENT_MODE} (Target: ${API_BASE || 'Relative'})`);
+    console.log(`[Clarity] Switched to ${CURRENT_MODE} (Target: ${API_BASE})`);
     
     // Trigger check
     setSystemStatus('offline', "Checking..."); 

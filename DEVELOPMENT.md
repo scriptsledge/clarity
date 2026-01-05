@@ -1,109 +1,64 @@
-# 🛠️ Developer Manual
+# Developer Manual 🛠️
 
-> "The instruction manual for Clarity."
+This guide covers the architecture, setup, and contribution workflows for Clarity.
 
-This document is the unified technical reference for running, maintaining, and deploying the Clarity codebase.
+## 🏗️ Architecture
 
----
+Clarity uses a decoupled architecture with a **Hybrid AI Engine**:
 
-## 🏗️ System Architecture
+*   **Frontend:** Vanilla HTML/JS/CSS (No framework bloat). Hosted on Vercel or locally.
+*   **Backend:** FastAPI (Python). Hosted on Hugging Face Spaces or Docker.
+*   **AI Models:**
+    *   **Local:** Qwen 2.5 Coder 0.5B (via `transformers` + `torch`).
+    *   **Cloud:** Google Gemini 1.5 Flash (via `google-generativeai`).
 
-Clarity follows a **Microservices** pattern, decoupling the heavy Inference Engine from the lightweight UI.
+### Hybrid Inference Flow
+1.  **User Selects Model:** "Google" or "Local" in the UI.
+2.  **Request:** Frontend sends JSON payload to Backend (`/api/correct`).
+3.  **Routing:**
+    *   If `provider="google"`: Backend calls Google Gemini API.
+    *   If `provider="local"`: Backend runs Qwen model locally.
+4.  **Security:** Google API Key is read from `os.environ` (Server) or `payload` (BYOK from Client).
 
-```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': { 'darkMode': true, 'primaryColor': '#1e1e2e', 'edgeLabelBackground':'#181825', 'tertiaryColor': '#181825', 'mainBkg': '#1e1e2e', 'nodeBorder': '#b4befe', 'lineColor': '#cdd6f4'}}}%%
-graph TD
-    subgraph Client [Frontend Layer]
-        UI[Browser UI]
-        Theme[Theme Engine]
-        HLJS[Syntax Highlighter]
-    end
+## 🚀 Local Setup
 
-    subgraph Server [Backend Layer]
-        API[FastAPI Gateway]
-        Detect[Lang Detection]
-        Engine[Transformers Engine]
-    end
+### Prerequisites
+*   Docker & Docker Compose
+*   Python 3.10+
+*   (Optional) Google API Key
 
-    UI -->|JSON HTTP| API
-    API -->|Raw Code| Detect
-    API -->|Prompt| Engine
-    Engine -->|Tokens| API
-    
-    style Client fill:#313244,stroke:#89b4fa,color:#cdd6f4
-    style Server fill:#313244,stroke:#a6e3a1,color:#cdd6f4
-    style UI fill:#45475a,stroke:#b4befe
-    style API fill:#45475a,stroke:#94e2d5
-    style Engine fill:#45475a,stroke:#f38ba8
-```
-
-### Core Systems
-1.  **Inference Engine (`backend/model_service.py`):** Uses **Hugging Face Transformers** to run **Qwen 2.5 Coder 0.5B** (Native PyTorch) with `accelerate` for optimization.
-2.  **Frontend (`frontend/`):** Zero-build vanilla HTML/JS with a custom Catppuccin Theme Engine.
-3.  **Discovery:** Auto-detects Local (`localhost:8000`), Docker (`7860`), or Cloud (`hf.space`) environments.
-
----
-
-## 💻 Local Development
-
-### Option A: The Docker Way (Recommended)
-Guarantees an identical environment to production.
-
+### Quick Start
 ```bash
-# Start the full stack
+# 1. Clone
+git clone https://github.com/your-repo/clarity.git
+cd clarity
+
+# 2. Setup Secrets (Optional, for Google Default)
+echo "GOOGLE_API_KEY=your_key_here" > .env
+
+# 3. Run
 docker compose up --build
 ```
-*   **Frontend:** [http://localhost](http://localhost)
-*   **Backend:** Port 7860 (Internal)
 
-### Option B: The Manual Way (Legacy)
+Access:
+*   Frontend: `http://localhost:80`
+*   Backend Docs: `http://localhost:7860/docs`
 
-**Note:** This now requires installing PyTorch, which is a large download (~2GB+).
-
-**1. Start Backend:**
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
-
-**2. Start Frontend:**
-Serve `frontend/index.html` using any static server (e.g., Live Server or `python -m http.server 3000`).
-
----
-
-## 🚀 Deployment Guide
+## ☁️ Deployment
 
 ### 1. Backend (Hugging Face Spaces)
-*   **Platform:** Hugging Face Spaces (Docker SDK).
-*   **Config:** `backend/Dockerfile` (Non-root user 1000).
-*   **Process:** Upload `backend/` content to the Space root. HF builds the image automatically.
+The backend is designed to run on a **CPU Basic** Space (free).
+1.  Create a new Space (SDK: Docker).
+2.  Upload the `backend/` folder contents.
+3.  **Settings > Variables and secrets:** Add `GOOGLE_API_KEY`.
 
-### 2. Frontend (Vercel)
-*   **Platform:** Vercel (Static Site).
-*   **Config:** Point Root Directory to `frontend/`.
-*   **Connection:** The frontend logic in `script.js` contains the production URL hardcoded for the `CLOUD` mode.
+### 2. Frontend (Vercel/Netlify)
+1.  Deploy the `frontend/` folder.
+2.  The `script.js` automatically detects production and points to the HF Backend.
 
----
-
-## 🌿 Git Workflow & Contributing
-
-### Branching Strategy
-*   **`main`:** The "Golden Copy". Always deployable.
-*   **`feature/*`:** New functionality.
-*   **`fix/*`:** Corrective patches.
-
-### The Pull Request Lifecycle
-1.  **Open:** Create a PR when your feature is ready.
-2.  **Review:** Team members review the code.
-3.  **Merge:** Squash and merge into `main`.
-
----
-
-## 🔗 See Also
-*   [📖 The Clarity Journey](JOURNEY.md) - Why we built it this way (Troubleshooting & Decisions).
-*   [🤖 AI Manifesto](docs/AI_MANIFESTO.md) - The rules governing the model's behavior.
-
-[⬅️ Back to Home](README.md)
+## 🧪 Testing
+Run the backend unit tests:
+```bash
+cd backend
+python -m pytest
+```
