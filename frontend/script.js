@@ -128,7 +128,8 @@ async function performHealthCheck() {
 
 async function checkHealth(baseUrl) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); 
+    // Increase timeout to 15s to allow for HF Cold Start
+    const timeoutId = setTimeout(() => controller.abort(), 15000); 
     let url = baseUrl === '' ? '/api/health' : `${baseUrl}/api/health`;
     
     try {
@@ -136,13 +137,16 @@ async function checkHealth(baseUrl) {
         clearTimeout(timeoutId);
         if (response.ok) return true;
 
-        // Cloud Exception for HF Spaces (Applies to both Cloud and Google modes using Cloud Backend)
+        // Cloud Exception
         if ((CURRENT_MODE === 'CLOUD' || (CURRENT_MODE === 'GOOGLE' && !isDev)) && (response.status === 404 || response.status === 405)) {
             return true; 
         }
         
         throw new Error(`HTTP Status ${response.status}`);
-    } catch (e) { throw e; }
+    } catch (e) {
+        console.error("Health Check Details:", { mode: CURRENT_MODE, url: url, error: e });
+        throw e;
+    }
 }
 
 function setSystemStatus(state, msg) {
