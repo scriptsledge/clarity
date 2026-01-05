@@ -913,3 +913,14 @@ body.theme-latte .glass-toggle-btn,
 body.theme-latte .glass-select-small {
     background: rgba(0, 0, 0, 0.05);
 }
+
+.full-width {
+    width: 100%;
+    justify-content: center;
+}
+
+.modal-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--surface0);
+}

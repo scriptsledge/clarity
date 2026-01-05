@@ -30,40 +30,54 @@ const apiSettingsBtn = document.getElementById('apiSettingsBtn');
 const apiModal = document.getElementById('apiModal');
 const closeApiSettings = document.getElementById('closeApiSettings');
 const googleApiKeyInput = document.getElementById('googleApiKey');
+const saveApiBtn = document.getElementById('saveApiBtn');
 
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsModal = document.getElementById('settingsModal');
 const closeSettings = document.getElementById('closeSettings');
 
-// Language UI
+// Language UI Elements
 const inputTab = document.getElementById('inputTab');
 const outputTab = document.getElementById('outputTab');
 const langStat = document.getElementById('langStat');
 
-// 1. Initialization
-async function initializeSystem() {
-    console.log('[Clarity] Initializing...');
-    loadSettings();
-    updateModelUI(); // Set initial UI state
-    await performHealthCheck();
-}
-
 function loadSettings() {
     const savedKey = localStorage.getItem('clarity-google-api-key');
     if (savedKey && googleApiKeyInput) googleApiKeyInput.value = savedKey;
-    if (googleApiKeyInput) {
-        googleApiKeyInput.addEventListener('input', (e) => {
-            const key = e.target.value.trim();
-            localStorage.setItem('clarity-google-api-key', key);
+}
+
+if (saveApiBtn) {
+    saveApiBtn.addEventListener('click', async () => {
+        const key = googleApiKeyInput.value.trim();
+        localStorage.setItem('clarity-google-api-key', key);
+        
+        // Visual Feedback
+        const originalHtml = saveApiBtn.innerHTML;
+        saveApiBtn.innerHTML = '<i class="ph ph-circle-notch ph-spin"></i> Verifying...';
+        saveApiBtn.disabled = true;
+
+        // Reset Cache & Trigger Re-Discovery
+        cachedGoogleModels = null;
+        if (CURRENT_MODE === 'GOOGLE') {
+            await fetchGoogleModels();
+            await performHealthCheck();
+        }
+
+        setTimeout(() => {
+            saveApiBtn.innerHTML = '<i class="ph ph-check-circle"></i> Applied Successfully';
+            saveApiBtn.style.background = 'var(--green)';
+            saveApiBtn.style.color = 'var(--base)';
             
-            // Clear cache and re-fetch if we are in Google mode
-            cachedGoogleModels = null;
-            if (CURRENT_MODE === 'GOOGLE') {
-                fetchGoogleModels();
-                performHealthCheck();
-            }
-        });
-    }
+            setTimeout(() => {
+                saveApiBtn.innerHTML = originalHtml;
+                saveApiBtn.style.background = '';
+                saveApiBtn.style.color = '';
+                saveApiBtn.disabled = false;
+                // Close modal after short delay
+                apiModal.classList.add('hidden');
+            }, 1500);
+        }, 800);
+    });
 }
 
 // 2. Mode Switching Logic (Toggle Cycle)
