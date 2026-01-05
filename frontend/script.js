@@ -318,6 +318,17 @@ if (correctBtn) {
             }
 
             const data = await response.json();
+
+            // Trap baked-in backend errors (200 OK but payload contains error text)
+            if (data.corrected_code) {
+                if (data.corrected_code.includes('Gemini Error: 429') || data.corrected_code.toLowerCase().includes('quota')) {
+                    throw new Error("QUOTA_EXHAUSTED");
+                }
+                if (data.corrected_code.startsWith('# Error:') || data.corrected_code.startsWith('# Gemini Error:')) {
+                    throw new Error(data.corrected_code);
+                }
+            }
+
             codeOutput.style.opacity = '1';
             codeOutput.textContent = data.corrected_code;
 
