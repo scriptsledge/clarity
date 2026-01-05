@@ -205,9 +205,9 @@ def correct_code_with_ai(code: str) -> dict:
             "language": detected_lang
         }
 
-def correct_code_with_gemini(code: str, api_key: str = None) -> dict:
+def correct_code_with_gemini(code: str, api_key: str = None, model_name: str = None) -> dict:
     """
-    Uses Google's Gemini 1.5 Flash model for code correction.
+    Uses Google's Gemini model for code correction.
     """
     detected_lang = detect_language(code)
     
@@ -222,6 +222,9 @@ def correct_code_with_gemini(code: str, api_key: str = None) -> dict:
 
     try:
         genai.configure(api_key=final_key)
+        
+        # Resolve Model Name (Default to flash-latest if not provided)
+        target_model = model_name if model_name else os.environ.get("GOOGLE_MODEL_NAME", "gemini-flash-latest")
         
         # Stricter System Prompt (Same as Local)
         system_prompt = (
@@ -240,11 +243,8 @@ def correct_code_with_gemini(code: str, api_key: str = None) -> dict:
             "Constraint: Return ONLY the corrected code with necessary educational comments inline. Do not output a separate explanation block unless absolutely necessary for a critical concept."
         )
 
-        # Default to Gemini Flash Latest (Auto-updates to newest stable)
-        model_name = os.environ.get("GOOGLE_MODEL_NAME", "gemini-flash-latest")
-        
         model = genai.GenerativeModel(
-            model_name=model_name,
+            model_name=target_model,
             system_instruction=system_prompt
         )
 
@@ -289,3 +289,31 @@ def correct_code_with_gemini(code: str, api_key: str = None) -> dict:
             "code": f"# Gemini Error: {str(e)}",
             "language": detected_lang
         }
+
+def get_gemini_models(api_key: str = None) -> list:
+    """
+    Dynamically fetches available models from Google API.
+    """
+    # 1. Resolve API Key
+    final_key = api_key if api_key else os.environ.get("GOOGLE_API_KEY")
+    
+    if not final_key:
+        return ["Error: No API Key"]
+
+    try:
+        genai.configure(api_key=final_key)
+        models = []
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                # Strip 'models/' prefix for cleaner UI
+                name = m.name.replace('models/', '')
+                models.append(name)
+        
+        # Sort to put 'flash' and 'pro' models at the top for better UX
+        models.sort(key=lambda x: (not 'flash' in x, not 'pro' in x, x))
+        
+        return models
+
+    except Exception as e:
+        print(f"Error listing models: {e}")
+        return []
