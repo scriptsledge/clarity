@@ -358,11 +358,14 @@ if (correctBtn) {
             if (error.message === 'QUOTA_EXHAUSTED') {
                 codeOutput.innerHTML = `
                  <div style="padding: 1rem; color: var(--text);">
-                    <h3 style="color: var(--peach); margin-bottom: 0.5rem;"><i class="ph ph-warning"></i> High Traffic / Quota Exceeded</h3>
-                    <p style="margin-bottom: 1rem;">The system is experiencing high traffic or the shared quota is exhausted.</p>
-                    <p style="margin-bottom: 1rem;"><b>Solution:</b> Use your own <span style="color: var(--green);">FREE</span> Google API Key to continue without limits.</p>
-                    <button onclick="document.getElementById('apiModal').classList.remove('hidden')" class="secondary-btn" style="width: fit-content;">
-                        <i class="ph ph-key"></i> Add Your API Key
+                    <h3 style="color: var(--peach); margin-bottom: 0.5rem;"><i class="ph ph-warning"></i> Quota Exceeded / High Traffic</h3>
+                    <p style="margin-bottom: 1rem;">The shared Google quota is exhausted.</p>
+                    <ul style="margin-bottom: 1rem; padding-left: 1.5rem; text-align: left;">
+                        <li><b>Option 1:</b> Add your own FREE API Key below.</li>
+                        <li><b>Option 2:</b> Tap "Google" below to switch to the <b>Cloud Model</b>.</li>
+                    </ul>
+                    <button onclick="document.getElementById('apiModal').classList.remove('hidden')" class="secondary-btn" style="width: fit-content; margin: 0 auto;">
+                        <i class="ph ph-key"></i> Add Personal Key
                     </button>
                  </div>`;
                 codeOutput.textContent = ''; // Clear text content to let HTML render, but checking if innerHTML overrides (it does in JS)
