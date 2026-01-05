@@ -10,13 +10,13 @@ Clarity uses a decoupled architecture with a **Hybrid AI Engine**:
 *   **Backend:** FastAPI (Python). Hosted on Hugging Face Spaces or Docker.
 *   **AI Models:**
     *   **Local:** Qwen 2.5 Coder 0.5B (via `transformers` + `torch`).
-    *   **Cloud:** Google Gemini 1.5 Flash (via `google-generativeai`).
+    *   **Cloud:** Google Gemini (via `google-generativeai`) with **Dynamic Model Discovery**.
 
 ### Hybrid Inference Flow
-1.  **User Selects Model:** "Google" or "Local" in the UI.
+1.  **User Selects Model:** "Google" (with Version Selector) or "Local" in the UI.
 2.  **Request:** Frontend sends JSON payload to Backend (`/api/correct`).
 3.  **Routing:**
-    *   If `provider="google"`: Backend calls Google Gemini API.
+    *   If `provider="google"`: Backend calls Google Gemini API using the selected version (e.g., `gemini-flash-latest`).
     *   If `provider="local"`: Backend runs Qwen model locally.
 4.  **Security:** Google API Key is read from `os.environ` (Server) or `payload` (BYOK from Client).
 
