@@ -140,7 +140,7 @@ if (saveApiBtn) {
 }
 
 // 2. Mode Switching Logic (Toggle Cycle)
-const MODES = ['GOOGLE', 'LOCAL', 'CLOUD'];
+const MODES = ['GOOGLE', 'CLOUD', 'LOCAL'];
 
 function cycleMode() {
     const currentIndex = MODES.indexOf(CURRENT_MODE);
