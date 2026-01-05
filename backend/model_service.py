@@ -240,8 +240,8 @@ def correct_code_with_gemini(code: str, api_key: str = None) -> dict:
             "Constraint: Return ONLY the corrected code with necessary educational comments inline. Do not output a separate explanation block unless absolutely necessary for a critical concept."
         )
 
-        # Default to Gemini 2.0 Flash (latest stable)
-        model_name = os.environ.get("GOOGLE_MODEL_NAME", "gemini-2.0-flash")
+        # Default to Gemini Flash Latest (Auto-updates to newest stable)
+        model_name = os.environ.get("GOOGLE_MODEL_NAME", "gemini-flash-latest")
         
         model = genai.GenerativeModel(
             model_name=model_name,
