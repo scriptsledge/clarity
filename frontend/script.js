@@ -368,8 +368,7 @@ if (correctBtn) {
                         <i class="ph ph-key"></i> Add Personal Key
                     </button>
                  </div>`;
-                codeOutput.textContent = ''; // Clear text content to let HTML render, but checking if innerHTML overrides (it does in JS)
-                // actually codeOutput is a <code> tag inside a <pre>. InnerHTML on code tag works.
+                // codeOutput.textContent = ''; // REMOVED: This was clearing the innerHTML we just set!
                 setSystemStatus('offline', "Quota Exceeded");
             } else {
                 codeOutput.textContent = `# Error: ${error.message}`;
